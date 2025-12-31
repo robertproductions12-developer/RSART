@@ -5,299 +5,231 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RS ART | Premium Studio</title>
     
-    <!-- Frameworks y Librerías -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    
-    <!-- Swiper.js (Para el Slider 3D) -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 
     <style>
-        :root {
-            --purple: #2D1B4E; --lime: #C6FF00; --magenta: #E91E63; --dark: #0F091A;
-        }
-
-        body {
-            background-color: var(--dark);
-            color: white;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            overflow-x: hidden;
-        }
-
-        /* Menu Estacionario */
-        header {
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            background: rgba(15, 9, 26, 0.9);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-
-        /* Slider 3D Customization */
-        .swiper { width: 100%; padding-top: 50px; padding-bottom: 50px; }
+        :root { --purple: #2D1B4E; --lime: #C6FF00; --magenta: #E91E63; --dark: #0F091A; }
+        body { background: var(--dark); color: white; font-family: 'Inter', sans-serif; }
+        
+        /* Slider 3D Estilo Premium */
+        .swiper { width: 100%; padding: 40px 0; }
         .swiper-slide {
-            background-position: center;
-            background-size: cover;
-            width: 300px;
-            height: 400px;
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 15px 50px rgba(0,0,0,0.5);
-            border: 1px solid rgba(255,255,255,0.1);
+            width: 320px; height: 450px; border-radius: 25px;
+            overflow: hidden; border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
         }
-        .swiper-slide video, .swiper-slide img {
-            width: 100%; height: 100%; object-fit: cover;
+        .swiper-slide img, .swiper-slide video { width: 100%; height: 100%; object-fit: cover; }
+
+        /* Timbre Flotante Permanente */
+        .timbre-btn {
+            position: fixed; bottom: 25px; right: 25px;
+            width: 70px; height: 70px; background: var(--magenta);
+            border-radius: 20px; display: flex; align-items: center;
+            justify-content: center; font-size: 28px; z-index: 9999;
+            cursor: pointer; box-shadow: 0 0 25px var(--magenta);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(233, 30, 99, 0.7); }
+            70% { transform: scale(1.1); box-shadow: 0 0 0 15px rgba(233, 30, 99, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(233, 30, 99, 0); }
         }
 
-        /* Botón Timbre Global */
-        .timbre-global {
-            position: fixed;
-            bottom: 25px;
-            right: 25px;
-            width: 65px;
-            height: 65px;
-            background: var(--magenta);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            box-shadow: 0 0 20px var(--magenta);
-            cursor: pointer;
-            z-index: 9999;
-            transition: transform 0.3s;
-        }
-        .timbre-global:active { transform: scale(0.9); }
-
-        /* Panel Admin */
-        .admin-section {
-            background: rgba(255,255,255,0.03);
-            border: 2px dashed rgba(255,255,255,0.1);
-            display: none; /* Se activa con el menú */
-        }
-
-        /* Cards de Producto */
-        .prod-card {
-            background: #1a1425;
-            border-radius: 20px;
-            transition: 0.3s;
-        }
-        .prod-card:hover { transform: translateY(-5px); border: 1px solid var(--lime); }
+        /* Admin UI */
+        .admin-box { background: rgba(255,255,255,0.05); border: 1px dashed var(--lime); display: none; }
+        .product-card { background: #1a1425; transition: 0.3s; border-radius: 20px; overflow: hidden; }
+        .product-card:hover { transform: translateY(-10px); border: 1px solid var(--lime); }
+        
+        header { position: sticky; top: 0; z-index: 1000; background: rgba(15,9,26,0.95); border-bottom: 1px solid rgba(255,255,255,0.1); }
     </style>
 </head>
 <body>
 
-    <!-- Navegación Principal -->
-    <header class="p-4">
+    <header class="p-5">
         <div class="container mx-auto flex justify-between items-center">
-            <div class="text-2xl font-black italic">RS <span class="text-[var(--lime)]">ART</span></div>
-            <nav class="hidden md:flex gap-8 font-bold text-sm">
+            <div class="text-3xl font-black italic">RS <span class="text-[var(--lime)]">ART</span></div>
+            <nav class="hidden md:flex gap-6 font-bold text-xs tracking-widest">
                 <a href="#" class="hover:text-[var(--lime)]">INICIO</a>
-                <a href="#catalogo" class="hover:text-[var(--lime)]">CATÁLOGO</a>
-                <a href="javascript:void(0)" onclick="toggleAdmin()" class="text-[var(--magenta)]"><i class="fas fa-lock mr-1"></i> ADMIN</a>
+                <a href="#productos" class="hover:text-[var(--lime)]">TIENDA</a>
+                <button onclick="accesoAdmin()" class="text-[var(--magenta)]">ADMIN</button>
             </nav>
-            <button class="md:hidden text-2xl" onclick="document.getElementById('mobile-menu').classList.toggle('hidden')">
-                <i class="fas fa-bars"></i>
-            </button>
-        </div>
-        <!-- Menú Móvil -->
-        <div id="mobile-menu" class="hidden flex flex-col p-4 gap-4 bg-[var(--dark)] border-t border-white/10 mt-2">
-            <a href="#">INICIO</a>
-            <a href="#catalogo">CATÁLOGO</a>
-            <a href="javascript:void(0)" onclick="toggleAdmin()">ADMINISTRADOR</a>
+            <div class="relative cursor-pointer" onclick="abrirCarrito()">
+                <i class="fas fa-shopping-bag text-2xl"></i>
+                <span id="cart-count" class="absolute -top-2 -right-2 bg-[var(--lime)] text-black text-[10px] font-bold px-2 rounded-full">0</span>
+            </div>
         </div>
     </header>
 
-    <!-- Slider 3D Profesional -->
-    <section class="py-10">
-        <div class="swiper mySwiper">
-            <div class="swiper-wrapper">
-                <!-- Video Corporativo -->
-                <div class="swiper-slide">
-                    <video autoplay muted loop>
-                        <source src="183107-870151708_small.mp4" type="video/mp4">
-                    </video>
-                    <div class="absolute bottom-0 p-4 bg-black/60 w-full text-xs">VIDEO CORPORATIVO</div>
-                </div>
-                <!-- Imagen 1 -->
-                <div class="swiper-slide">
-                    <img src="https://images.unsplash.com/photo-1626785774573-4b799315345d?w=500">
-                </div>
-                <!-- Imagen 2 -->
-                <div class="swiper-slide">
-                    <img src="https://images.unsplash.com/photo-1589118949245-7d38baf380d6?w=500">
-                </div>
-                <!-- Imagen 3 -->
-                <div class="swiper-slide">
-                    <img src="https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?w=500">
-                </div>
-            </div>
-            <div class="swiper-pagination"></div>
+    <!-- Slider 3D Automático -->
+    <div class="swiper mySwiper">
+        <div class="swiper-wrapper">
+            <div class="swiper-slide"><video src="https://assets.mixkit.co/videos/preview/mixkit-mechanical-parts-of-a-printing-press-working-43534-large.mp4" autoplay muted loop></video></div>
+            <div class="swiper-slide"><img src="https://images.unsplash.com/photo-1626785774573-4b799315345d?w=600"></div>
+            <div class="swiper-slide"><img src="https://images.unsplash.com/photo-1589118949245-7d38baf380d6?w=600"></div>
+            <div class="swiper-slide"><img src="https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?w=600"></div>
         </div>
+    </div>
+
+    <!-- Panel Administrador -->
+    <section id="panelAdmin" class="container mx-auto px-6 py-10 admin-box rounded-3xl mb-10">
+        <h2 class="text-2xl font-bold mb-6 text-[var(--lime)]">Panel de Gestión RS ART</h2>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <input type="text" id="p-nombre" placeholder="Nombre Producto" class="bg-black/40 p-3 rounded-xl border border-white/10 outline-none">
+            <input type="number" id="p-precio" placeholder="Precio ($)" class="bg-black/40 p-3 rounded-xl border border-white/10 outline-none">
+            <input type="text" id="p-img" placeholder="Link Imagen (URL)" class="bg-black/40 p-3 rounded-xl border border-white/10 outline-none">
+            <textarea id="p-desc" placeholder="Descripción" class="bg-black/40 p-3 rounded-xl border border-white/10 outline-none"></textarea>
+        </div>
+        <button onclick="crearProducto()" class="mt-4 bg-[var(--lime)] text-black font-bold px-10 py-3 rounded-xl">PUBLICAR AHORA</button>
     </section>
 
-    <!-- Panel de Administrador (Solo tú lo usas) -->
-    <section id="adminPanel" class="container mx-auto px-4 mb-10 admin-section p-6 rounded-3xl">
-        <h2 class="text-xl font-bold mb-4 text-[var(--lime)]"><i class="fas fa-plus-circle"></i> Agregar Nuevo Producto</h2>
-        <div class="grid md:grid-cols-4 gap-4">
-            <input type="text" id="p-nombre" placeholder="Nombre" class="bg-white/10 p-3 rounded-lg outline-none">
-            <input type="text" id="p-precio" placeholder="Precio ($)" class="bg-white/10 p-3 rounded-lg outline-none">
-            <input type="text" id="p-img" placeholder="URL de la imagen" class="bg-white/10 p-3 rounded-lg outline-none">
-            <textarea id="p-desc" placeholder="Descripción corta" class="bg-white/10 p-3 rounded-lg outline-none"></textarea>
-        </div>
-        <button onclick="guardarProducto()" class="mt-4 bg-[var(--lime)] text-black font-bold px-6 py-2 rounded-full hover:scale-105 transition">PUBLICAR</button>
-    </section>
-
-    <!-- Catálogo de Productos -->
-    <main class="container mx-auto px-4 py-10">
-        <h2 id="catalogo" class="text-3xl font-black mb-10 italic">NUESTRO <span class="text-[var(--magenta)]">PORTAFOLIO</span></h2>
-        <div id="grid-productos" class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <!-- Los productos se cargan aquí desde JavaScript -->
+    <!-- Catálogo -->
+    <main class="container mx-auto px-6 py-10">
+        <h2 id="productos" class="text-4xl font-black mb-12 italic">NUESTROS <span class="text-[var(--lime)]">PRODUCTOS</span></h2>
+        <div id="contenedor-productos" class="grid grid-cols-1 md:grid-cols-3 gap-10">
+            <!-- Cargado por JS -->
         </div>
     </main>
 
-    <!-- TIMBRE GLOBAL -->
-    <div class="timbre-global" onclick="tocarTimbre()">
+    <!-- Timbre -->
+    <div class="timbre-btn" onclick="notificarTimbre()">
         <i class="fas fa-bell"></i>
     </div>
 
-    <!-- Scripts de Lógica -->
     <script>
-        // Inicializar Slider 3D
+        // CONFIGURACIÓN DE NOTIFICACIONES (Telegram)
+        const TG_TOKEN = "TU_TOKEN_DE_TELEGRAM_AQUI"; 
+        const TG_CHAT_ID = "TU_ID_DE_CHAT_AQUI";
+
+        // Inicializar Slider Automático 3D
         var swiper = new Swiper(".mySwiper", {
             effect: "coverflow",
             grabCursor: true,
             centeredSlides: true,
             slidesPerView: "auto",
-            coverflowEffect: {
-                rotate: 50,
-                stretch: 0,
-                depth: 100,
-                modifier: 1,
-                slideShadows: true,
-            },
-            pagination: { el: ".swiper-pagination" },
+            loop: true,
+            autoplay: { delay: 2500, disableOnInteraction: false },
+            coverflowEffect: { rotate: 50, stretch: 0, depth: 100, modifier: 1, slideShadows: true }
         });
 
-        // Lógica de Productos (Administración)
-        let productos = JSON.parse(localStorage.getItem('rs_art_products')) || [
-            { id: 1, nombre: "Folders Premium", precio: "45", img: "https://images.unsplash.com/photo-1626785774573-4b799315345d?w=500", desc: "Estilo elegante púrpura." }
+        // Lógica de Productos
+        let productos = JSON.parse(localStorage.getItem('rs_art_db')) || [
+            { nombre: "Folder Corporativo", precio: 25, img: "https://images.unsplash.com/photo-1626785774573-4b799315345d?w=500", desc: "Acabado mate premium" }
         ];
+        let carrito = [];
 
-        function mostrarProductos() {
-            const grid = document.getElementById('grid-productos');
-            grid.innerHTML = '';
-            productos.forEach((p, index) => {
-                grid.innerHTML += `
-                    <div class="prod-card overflow-hidden">
-                        <img src="${p.img}" class="w-full h-56 object-cover">
+        function render() {
+            const container = document.getElementById('contenedor-productos');
+            container.innerHTML = '';
+            productos.forEach((p, i) => {
+                container.innerHTML += `
+                    <div class="product-card">
+                        <img src="${p.img}" class="w-full h-64 object-cover">
                         <div class="p-6">
                             <h3 class="text-xl font-bold">${p.nombre}</h3>
-                            <p class="text-gray-400 text-sm my-2">${p.desc}</p>
-                            <div class="flex justify-between items-center mt-4">
-                                <span class="text-[var(--lime)] font-black text-2xl">$${p.precio}</span>
+                            <p class="text-gray-400 text-sm mt-2">${p.desc}</p>
+                            <div class="flex justify-between items-center mt-6">
+                                <span class="text-2xl font-black text-[var(--lime)]">$${p.precio}</span>
                                 <div class="flex gap-2">
-                                    <button onclick="comprar('${p.nombre}')" class="bg-white/10 p-2 rounded-lg hover:bg-[var(--magenta)]"><i class="fas fa-shopping-cart"></i></button>
-                                    <button onclick="eliminarProducto(${index})" class="admin-only hidden bg-red-900/50 p-2 rounded-lg"><i class="fas fa-trash"></i></button>
+                                    <button onclick="agregarAlCarrito(${i})" class="bg-[var(--magenta)] px-4 py-2 rounded-lg font-bold">AÑADIR</button>
+                                    <button onclick="borrarProducto(${i})" class="admin-only hidden bg-red-600 px-3 py-2 rounded-lg"><i class="fas fa-trash"></i></button>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                `;
+                    </div>`;
             });
-            actualizarVisibilidadAdmin();
+            actualizarAdminUI();
         }
 
-        function guardarProducto() {
-            const nombre = document.getElementById('p-nombre').value;
-            const precio = document.getElementById('p-precio').value;
-            const img = document.getElementById('p-img').value;
-            const desc = document.getElementById('p-desc').value;
-
-            if(!nombre || !precio) return alert("Nombre y precio son obligatorios");
-
-            productos.push({ nombre, precio, img, desc });
-            localStorage.setItem('rs_art_products', JSON.stringify(productos));
-            mostrarProductos();
-            
-            // Limpiar campos
-            document.getElementById('p-nombre').value = '';
-            document.getElementById('p-precio').value = '';
-            Swal.fire('¡Éxito!', 'Producto añadido al catálogo', 'success');
+        function crearProducto() {
+            const n = document.getElementById('p-nombre').value;
+            const p = document.getElementById('p-precio').value;
+            const i = document.getElementById('p-img').value;
+            const d = document.getElementById('p-desc').value;
+            if(!n || !p) return alert("Completa los datos");
+            productos.push({ nombre: n, precio: p, img: i, desc: d });
+            localStorage.setItem('rs_art_db', JSON.stringify(productos));
+            render();
+            Swal.fire('Guardado', 'Producto añadido correctamente', 'success');
         }
 
-        function eliminarProducto(index) {
+        function borrarProducto(i) {
+            productos.splice(i, 1);
+            localStorage.setItem('rs_art_db', JSON.stringify(productos));
+            render();
+        }
+
+        function accesoAdmin() {
             Swal.fire({
-                title: '¿Eliminar?',
-                text: "Esta acción no se puede deshacer",
-                icon: 'warning',
+                title: 'Password Admin',
+                input: 'password',
                 showCancelButton: true,
-                confirmButtonColor: '#E91E63'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    productos.splice(index, 1);
-                    localStorage.setItem('rs_art_products', JSON.stringify(productos));
-                    mostrarProductos();
+                background: '#0F091A', color: '#fff'
+            }).then(res => {
+                if(res.value === '1234') { // CLAVE POR DEFECTO
+                    document.getElementById('panelAdmin').style.display = 'block';
+                    sessionStorage.setItem('isAdmin', 'true');
+                    actualizarAdminUI();
                 }
             });
         }
 
-        function toggleAdmin() {
-            const panel = document.getElementById('adminPanel');
-            const esVisible = panel.style.display === 'block';
-            
-            if(!esVisible) {
-                Swal.fire({
-                    title: 'Acceso Admin',
-                    input: 'password',
-                    inputPlaceholder: 'Ingresa tu clave',
-                    showCancelButton: true
-                }).then((result) => {
-                    if(result.value === '1234') { // Cambia '1234' por tu clave
-                        panel.style.display = 'block';
-                        sessionStorage.setItem('isAdmin', 'true');
-                        actualizarVisibilidadAdmin();
-                    } else if(result.dismiss !== 'cancel') {
-                        Swal.fire('Error', 'Clave incorrecta', 'error');
-                    }
-                });
-            } else {
-                panel.style.display = 'none';
-                sessionStorage.removeItem('isAdmin');
-                actualizarVisibilidadAdmin();
-            }
+        function actualizarAdminUI() {
+            const admin = sessionStorage.getItem('isAdmin');
+            document.querySelectorAll('.admin-only').forEach(el => el.classList.toggle('hidden', !admin));
         }
 
-        function actualizarVisibilidadAdmin() {
-            const isAdmin = sessionStorage.getItem('isAdmin') === 'true';
-            document.querySelectorAll('.admin-only').forEach(el => {
-                el.classList.toggle('hidden', !isAdmin);
-            });
+        // NOTIFICACIONES Y ALARMAS
+        async function enviarNotificacion(mensaje) {
+            const url = `https://api.telegram.org/bot${TG_TOKEN}/sendMessage?chat_id=${TG_CHAT_ID}&text=${encodeURIComponent(mensaje)}&parse_mode=Markdown`;
+            await fetch(url);
         }
 
-        function tocarTimbre() {
-            const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
-            audio.play();
+        function notificarTimbre() {
+            new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3').play();
             Swal.fire({
                 title: 'Llamando...',
-                text: 'Se enviará una notificación de timbre a RS ART',
-                background: '#0F091A', color: '#fff',
-                confirmButtonText: 'OK', confirmButtonColor: '#E91E63'
-            }).then(() => {
-                window.open(`https://wa.me/TUNUMERO?text=🔔_ALERTA_TIMBRE_RS_ART`);
+                text: 'El encargado recibirá una alerta en su dispositivo.',
+                icon: 'warning',
+                showConfirmButton: false,
+                timer: 2000
+            });
+            enviarNotificacion("🔔 ¡ALERTA! Alguien tocó el TIMBRE en la tienda RS ART. ¡Atención inmediata necesaria!");
+        }
+
+        function agregarAlCarrito(i) {
+            carrito.push(productos[i]);
+            document.getElementById('cart-count').innerText = carrito.length;
+            Swal.fire({ toast: true, position: 'top-end', title: 'Añadido', icon: 'success', showConfirmButton: false, timer: 1000 });
+        }
+
+        function abrirCarrito() {
+            if(carrito.length === 0) return Swal.fire('Carrito vacío', '', 'info');
+            let lista = carrito.map(p => `- ${p.nombre} ($${p.precio})`).join('\n');
+            let total = carrito.reduce((s, p) => s + parseFloat(p.precio), 0);
+            
+            Swal.fire({
+                title: 'Tu Pedido',
+                text: lista + `\n\nTOTAL: $${total}`,
+                showCancelButton: true,
+                confirmButtonText: 'CONFIRMAR COMPRA',
+                confirmButtonColor: '#E91E63',
+                background: '#0F091A', color: '#fff'
+            }).then(res => {
+                if(res.isConfirmed) {
+                    const msg = `🛒 NUEVO PEDIDO RS ART:\n${lista}\n\n💰 TOTAL: $${total}`;
+                    enviarNotificacion(msg);
+                    Swal.fire('¡Pedido Enviado!', 'Recibirás una respuesta pronto.', 'success');
+                    carrito = [];
+                    document.getElementById('cart-count').innerText = '0';
+                }
             });
         }
 
-        function comprar(nombre) {
-            window.open(`https://wa.me/TUNUMERO?text=Hola_RS_ART,_me_interesa_el_producto:_${nombre}`);
-        }
-
-        // Carga Inicial
-        mostrarProductos();
+        render();
     </script>
 </body>
 </html>
