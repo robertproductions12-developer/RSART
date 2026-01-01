@@ -11,6 +11,8 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <!-- Librería para PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -41,22 +43,17 @@
         .card-service { background: rgba(255,255,255,0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; transition: 0.4s; overflow: hidden; }
         .card-service:hover { border-color: var(--lime); transform: translateY(-8px); }
         
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: var(--dark); }
-        ::-webkit-scrollbar-thumb { background: var(--purple); border-radius: 10px; }
-        
         .btn-magenta { background: var(--magenta); transition: 0.3s; }
         .btn-magenta:hover { filter: brightness(1.2); transform: scale(1.05); }
         
         .admin-modal { background: rgba(15, 9, 26, 0.98); backdrop-filter: blur(20px); }
 
-        /* Estilo para Impresión */
-        @media print {
-            body * { visibility: hidden; }
-            #lista-pedidos-print, #lista-pedidos-print * { visibility: visible; color: black !important; }
-            #lista-pedidos-print { position: absolute; left: 0; top: 0; width: 100%; }
-            .no-print { display: none !important; }
-        }
+        /* Colores de Estatus */
+        .status-rojo { border-left: 6px solid #ff4444 !important; }
+        .status-amarillo { border-left: 6px solid #ffbb33 !important; }
+        .status-verde { border-left: 6px solid #00c851 !important; }
+
+        @media print { .no-print { display: none !important; } }
     </style>
 </head>
 <body id="cuerpo">
@@ -118,30 +115,39 @@
             </div>
 
             <div class="grid grid-cols-1 xl:grid-cols-3 gap-10">
-                <!-- Columna 1: Carga y Configuración de Pagos -->
+                <!-- Columna 1: Configuración -->
                 <div class="space-y-6">
+                    <!-- Configurar Mensaje de Éxito e Imagen -->
                     <div class="bg-white/5 p-8 rounded-3xl border border-white/10">
-                        <h3 class="text-xl mb-6 font-bold flex items-center gap-2 text-[var(--lime)]"><i class="fas fa-plus-circle"></i> Nuevo Producto</h3>
+                        <h3 class="text-xl mb-4 font-bold text-[var(--lime)]"><i class="fas fa-check-circle"></i> Pantalla de Éxito</h3>
+                        <div class="space-y-3">
+                            <input type="text" id="conf-exito-msg" placeholder="Mensaje Especial" class="w-full bg-black/50 p-3 rounded-xl border border-white/10 text-xs">
+                            <label class="text-[10px] text-gray-500 uppercase font-bold">Imagen de Agradecimiento</label>
+                            <input type="file" onchange="convertirBase64(this, 'exito-img')" class="text-xs block w-full">
+                            <input type="hidden" id="adm-exito-img">
+                            <button onclick="guardarConfigExito()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition text-xs">GUARDAR PANTALLA ÉXITO</button>
+                        </div>
+                    </div>
+
+                    <div class="bg-white/5 p-8 rounded-3xl border border-white/10">
+                        <h3 class="text-xl mb-6 font-bold text-[var(--lime)]"><i class="fas fa-plus-circle"></i> Nuevo Producto</h3>
                         <div class="space-y-4">
                             <input type="hidden" id="adm-key">
                             <input type="text" id="adm-nombre" placeholder="Nombre" class="w-full bg-black/50 p-4 rounded-xl border border-white/10 outline-none">
                             <input type="number" id="adm-precio" placeholder="Precio Bs." class="w-full bg-black/50 p-4 rounded-xl border border-white/10 outline-none">
                             <textarea id="adm-obs" placeholder="Descripción" class="w-full bg-black/50 p-4 rounded-xl border border-white/10 outline-none h-24"></textarea>
-                            <input type="file" onchange="convertirBase64(this, 'img1')" class="text-xs block w-full text-gray-500">
+                            <input type="file" onchange="convertirBase64(this, 'img1')" class="text-xs">
                             <input type="hidden" id="adm-img1">
                             <button onclick="guardarProducto()" id="btn-save" class="w-full bg-[var(--lime)] text-black font-black py-4 rounded-2xl shadow-lg transition">GUARDAR PRODUCTO</button>
                         </div>
                     </div>
 
-                    <!-- NUEVO: Configuración de Datos de Pago -->
                     <div class="bg-white/5 p-8 rounded-3xl border border-white/10">
-                        <h3 class="text-xl mb-4 font-bold flex items-center gap-2 text-[var(--magenta)]"><i class="fas fa-university"></i> Configurar Pagos</h3>
+                        <h3 class="text-xl mb-4 font-bold text-[var(--magenta)]"><i class="fas fa-university"></i> Configurar Pagos</h3>
                         <div class="space-y-3">
-                            <label class="text-[10px] text-gray-500 uppercase font-bold">Datos Pago Móvil</label>
-                            <textarea id="conf-pago-movil" class="w-full bg-black/50 p-3 rounded-xl border border-white/10 text-xs" placeholder="Ej: Banesco, 0412..., V-1234567"></textarea>
-                            <label class="text-[10px] text-gray-500 uppercase font-bold">Datos Transferencia</label>
-                            <textarea id="conf-transferencia" class="w-full bg-black/50 p-3 rounded-xl border border-white/10 text-xs" placeholder="Ej: Cuenta Corriente, 0102..."></textarea>
-                            <button onclick="guardarConfigPagos()" class="w-full bg-white/10 hover:bg-white/20 text-white font-bold py-3 rounded-xl transition">ACTUALIZAR DATOS</button>
+                            <textarea id="conf-pago-movil" class="w-full bg-black/50 p-3 rounded-xl border border-white/10 text-xs" placeholder="Datos Pago Móvil"></textarea>
+                            <textarea id="conf-transferencia" class="w-full bg-black/50 p-3 rounded-xl border border-white/10 text-xs" placeholder="Datos Transferencia"></textarea>
+                            <button onclick="guardarConfigPagos()" class="w-full bg-white/10 hover:bg-white/20 text-white font-bold py-3 rounded-xl transition">ACTUALIZAR PAGOS</button>
                         </div>
                     </div>
                 </div>
@@ -157,13 +163,11 @@
                     <div class="flex justify-between items-center mb-6">
                         <h3 class="text-xl font-bold flex items-center gap-2"><i class="fas fa-shopping-cart text-[var(--magenta)]"></i> Pedidos</h3>
                         <div class="flex gap-2">
-                            <button onclick="imprimirPedidos()" class="p-2 bg-blue-600 rounded-lg text-xs" title="Imprimir"><i class="fas fa-print"></i></button>
+                            <button onclick="descargarPDF()" class="p-2 bg-orange-600 rounded-lg text-xs" title="Descargar PDF"><i class="fas fa-file-pdf"></i></button>
                             <button onclick="borrarPedidos()" class="p-2 bg-red-600 rounded-lg text-xs" title="Borrar Todo"><i class="fas fa-trash-alt"></i></button>
                         </div>
                     </div>
                     <div id="lista-pedidos" class="space-y-4"></div>
-                    <!-- Contenedor oculto para impresión -->
-                    <div id="lista-pedidos-print" class="hidden"></div>
                 </div>
             </div>
         </div>
@@ -179,24 +183,39 @@
         let carrito = [];
         let productosData = [];
         let configPagos = { movil: '', banco: '' };
+        let configExito = { mensaje: '¡Gracias por tu compra!', imagen: '' };
 
         new Swiper(".mySwiper", { loop: true, pagination: { el: ".swiper-pagination" }, autoplay: { delay: 4000 } });
 
-        // Cargar Configuración de Pagos
-        db.ref('configuracion/pagos').on('value', snap => {
-            if(snap.exists()){
-                configPagos = snap.val();
-                document.getElementById('conf-pago-movil').value = configPagos.movil || '';
-                document.getElementById('conf-transferencia').value = configPagos.banco || '';
+        // Cargar Configuración
+        db.ref('configuracion').on('value', snap => {
+            const data = snap.val();
+            if(data) {
+                if(data.pagos) {
+                    configPagos = data.pagos;
+                    document.getElementById('conf-pago-movil').value = data.pagos.movil || '';
+                    document.getElementById('conf-transferencia').value = data.pagos.banco || '';
+                }
+                if(data.exito) {
+                    configExito = data.exito;
+                    document.getElementById('conf-exito-msg').value = data.exito.mensaje || '';
+                    document.getElementById('adm-exito-img').value = data.exito.imagen || '';
+                }
             }
         });
 
         function guardarConfigPagos() {
             const movil = document.getElementById('conf-pago-movil').value;
             const banco = document.getElementById('conf-transferencia').value;
-            db.ref('configuracion/pagos').set({ movil, banco }).then(() => {
-                Swal.fire("Éxito", "Datos de pago actualizados", "success");
-            });
+            db.ref('configuracion/pagos').set({ movil, banco });
+            Swal.fire("Éxito", "Pagos actualizados", "success");
+        }
+
+        function guardarConfigExito() {
+            const mensaje = document.getElementById('conf-exito-msg').value;
+            const imagen = document.getElementById('adm-exito-img').value;
+            db.ref('configuracion/exito').set({ mensaje, imagen });
+            Swal.fire("Éxito", "Pantalla de éxito configurada", "success");
         }
 
         db.ref('.info/connected').on('value', snap => {
@@ -215,143 +234,123 @@
             const container = document.getElementById('lista-productos');
             const inventario = document.getElementById('inventario-lista');
             container.innerHTML = ""; inventario.innerHTML = ""; productosData = [];
-
             snap.forEach(child => {
                 const p = child.val(); p.key = child.key;
                 productosData.push(p);
-
-                container.innerHTML += `
-                    <div class="card-service">
-                        <img src="${p.img1}" class="w-full h-56 object-cover">
-                        <div class="p-6">
-                            <h3 class="text-xl font-bold">${p.nombre}</h3>
-                            <p class="text-2xl font-black text-[var(--lime)] mt-4">Bs. ${parseFloat(p.precio).toLocaleString('de-DE')}</p>
-                            <button onclick="alCarrito('${p.key}')" class="btn-magenta w-full mt-4 py-3 rounded-2xl text-xs font-black italic uppercase">Comprar Servicio</button>
-                        </div>
-                    </div>`;
-
-                inventario.innerHTML += `
-                    <div class="flex items-center gap-4 bg-black/30 p-3 rounded-2xl border border-white/5">
-                        <div class="flex-1 text-sm font-bold">${p.nombre} <br> <span class="text-[var(--lime)]">Bs. ${p.precio}</span></div>
-                        <button onclick="eliminarProducto('${p.key}')" class="text-red-500 p-2"><i class="fas fa-trash"></i></button>
-                    </div>`;
+                container.innerHTML += `<div class="card-service">
+                    <img src="${p.img1}" class="w-full h-56 object-cover">
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold">${p.nombre}</h3>
+                        <p class="text-2xl font-black text-[var(--lime)] mt-4">Bs. ${parseFloat(p.precio).toLocaleString('de-DE')}</p>
+                        <button onclick="alCarrito('${p.key}')" class="btn-magenta w-full mt-4 py-3 rounded-2xl text-xs font-black italic uppercase">Comprar</button>
+                    </div>
+                </div>`;
+                inventario.innerHTML += `<div class="flex items-center gap-4 bg-black/30 p-3 rounded-2xl border border-white/5">
+                    <div class="flex-1 text-sm font-bold">${p.nombre}</div>
+                    <button onclick="eliminarProducto('${p.key}')" class="text-red-500 p-2"><i class="fas fa-trash"></i></button>
+                </div>`;
             });
         });
 
         function alCarrito(key) {
             const prod = productosData.find(x => x.key === key);
-            // Si el producto ya está en el carrito, no lo duplicamos aquí, dejamos que la cantidad se maneje en el modal
             const existe = carrito.find(x => x.key === key);
-            if(!existe) {
-                carrito.push({ ...prod, cantidad: 1 });
-            }
+            if(!existe) carrito.push({ ...prod, cantidad: 1 });
             document.getElementById('cart-count').innerText = carrito.length;
-            Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Agregado al carrito', showConfirmButton: false, timer: 1500 });
+            Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Agregado', showConfirmButton: false, timer: 1000 });
         }
 
-        async function verCarrito() {
-            if (carrito.length === 0) return Swal.fire("Tu carrito está vacío", "", "info");
-            
+        function verCarrito() {
+            if (carrito.length === 0) return Swal.fire("Vacío", "", "info");
             actualizarModalCarrito();
         }
 
         function actualizarModalCarrito() {
             let total = carrito.reduce((s, p) => s + (parseFloat(p.precio) * p.cantidad), 0);
-            
-            let html = `
-                <div class="text-left text-gray-800">
-                    <div class="max-h-60 overflow-y-auto mb-4">
-                        ${carrito.map((p, index) => `
-                            <div class="flex items-center justify-between border-b py-3 gap-2">
-                                <div class="flex-1">
-                                    <p class="font-bold text-sm">${p.nombre}</p>
-                                    <p class="text-xs text-magenta-500 font-bold">Bs. ${parseFloat(p.precio).toLocaleString('de-DE')}</p>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <button onclick="cambiarCant(${index}, -1)" class="w-6 h-6 bg-gray-200 rounded">-</button>
-                                    <span class="font-bold w-4 text-center">${p.cantidad}</span>
-                                    <button onclick="cambiarCant(${index}, 1)" class="w-6 h-6 bg-gray-200 rounded">+</button>
-                                </div>
+            let html = `<div class="text-left text-gray-800">
+                <div class="max-h-48 overflow-y-auto mb-4">
+                    ${carrito.map((p, i) => `
+                        <div class="flex justify-between border-b py-2 text-xs">
+                            <span class="font-bold">${p.nombre} (x${p.cantidad})</span>
+                            <div class="flex gap-2">
+                                <button onclick="cambiarCant(${i},-1)">-</button>
+                                <button onclick="cambiarCant(${i},1)">+</button>
                             </div>
-                        `).join('')}
-                    </div>
-                    <div class="text-xl font-black text-right text-[var(--magenta)] mb-4">
-                        TOTAL: Bs. ${total.toLocaleString('de-DE')}
-                    </div>
-                    <div class="space-y-3">
-                        <select id="swal-metodo" onchange="mostrarInfoPago(this.value)" class="w-full p-3 bg-gray-100 rounded-xl border-none">
-                            <option value="">Seleccione Método de Pago</option>
-                            <option value="Pago Móvil">Pago Móvil</option>
-                            <option value="Transferencia">Transferencia</option>
-                            <option value="Efectivo">Efectivo</option>
-                        </select>
-                        <div id="info-pago-box" class="p-3 bg-blue-50 rounded-xl text-xs hidden border border-blue-200"></div>
-                        <input type="text" id="swal-ref" placeholder="Código de Referencia / Comprobante" class="w-full p-3 bg-gray-100 rounded-xl border-none">
-                        <textarea id="swal-obs" placeholder="Observaciones adicionales..." class="w-full p-3 bg-gray-100 rounded-xl h-20 border-none"></textarea>
-                    </div>
-                </div>`;
+                        </div>`).join('')}
+                </div>
+                <p class="text-right font-black text-[var(--magenta)]">TOTAL: Bs. ${total.toLocaleString('de-DE')}</p>
+                <div class="mt-4 space-y-2">
+                    <select id="swal-metodo" onchange="mostrarInfoPago(this.value)" class="w-full p-2 bg-gray-100 rounded-lg text-xs">
+                        <option value="">Método de Pago</option>
+                        <option value="Pago Móvil">Pago Móvil</option>
+                        <option value="Transferencia">Transferencia</option>
+                    </select>
+                    <div id="info-pago-box" class="p-2 bg-blue-50 rounded text-[10px] hidden border border-blue-200"></div>
+                    <input type="text" id="swal-tel" placeholder="Número de Teléfono Origen" class="w-full p-2 bg-gray-100 rounded-lg text-xs">
+                    <input type="text" id="swal-ref" placeholder="Referencia" class="w-full p-2 bg-gray-100 rounded-lg text-xs">
+                    <textarea id="swal-obs" placeholder="Observaciones" class="w-full p-2 bg-gray-100 rounded-lg text-xs h-16"></textarea>
+                </div>
+            </div>`;
 
             Swal.fire({
-                title: 'RESUMEN DE PEDIDO',
+                title: 'RESUMEN',
                 html: html,
                 showCancelButton: true,
-                confirmButtonText: 'CONFIRMAR PAGO',
+                confirmButtonText: 'FINALIZAR COMPRA',
                 confirmButtonColor: '#E91E63',
                 preConfirm: () => {
                     return {
                         metodo: document.getElementById('swal-metodo').value,
-                        referencia: document.getElementById('swal-ref').value,
+                        tel: document.getElementById('swal-tel').value,
+                        ref: document.getElementById('swal-ref').value,
                         obs: document.getElementById('swal-obs').value
                     }
                 }
-            }).then((result) => {
+            }).then(result => {
                 if (result.isConfirmed) {
-                    if(!result.value.metodo) return Swal.fire("Error", "Selecciona un método de pago", "error");
+                    if(!result.value.metodo || !result.value.tel) return Swal.fire("Faltan Datos", "Método y Teléfono obligatorios", "error");
                     enviarPedido(result.value, total);
                 }
             });
         }
 
-        window.cambiarCant = (index, delta) => {
-            carrito[index].cantidad += delta;
-            if (carrito[index].cantidad < 1) carrito.splice(index, 1);
+        function cambiarCant(i, d) {
+            carrito[i].cantidad += d;
+            if (carrito[i].cantidad < 1) carrito.splice(i, 1);
             document.getElementById('cart-count').innerText = carrito.length;
-            if(carrito.length === 0) Swal.close();
-            else actualizarModalCarrito();
-        };
+            actualizarModalCarrito();
+        }
 
-        window.mostrarInfoPago = (val) => {
+        function mostrarInfoPago(v) {
             const box = document.getElementById('info-pago-box');
             box.classList.remove('hidden');
-            if(val === 'Pago Móvil') box.innerText = "TRANSFERIR A: " + (configPagos.movil || "No configurado");
-            else if(val === 'Transferencia') box.innerText = "CUENTA BANCARIA: " + (configPagos.banco || "No configurado");
+            if(v === 'Pago Móvil') box.innerText = "DATOS: " + configPagos.movil;
+            else if(v === 'Transferencia') box.innerText = "DATOS: " + configPagos.banco;
             else box.classList.add('hidden');
         }
 
-        function enviarPedido(datos, total) {
+        function enviarPedido(d, t) {
             const pedido = {
-                items: carrito,
-                total: total,
-                metodo: datos.metodo,
-                referencia: datos.referencia,
-                comentario: datos.obs,
-                fecha: new Date().toLocaleString()
+                items: carrito, total: t, metodo: d.metodo, tel: d.tel, ref: d.ref, obs: d.obs,
+                fecha: new Date().toLocaleString(), status: 'rojo'
             };
             db.ref('pedidos').push(pedido);
-            db.ref('alarma_evento').set({ id: Math.random(), tipo: "COMPRA", info: `Bs. ${total} - ${datos.metodo}`, timestamp: Date.now() });
+            db.ref('alarma_evento').set({ id: Math.random(), tipo: "COMPRA", info: `Bs. ${t}`, timestamp: Date.now() });
             carrito = [];
             document.getElementById('cart-count').innerText = "0";
-            Swal.fire("¡ÉXITO!", "Tu pedido ha sido procesado.", "success");
-        }
 
-        function tocarTimbreSolo() {
-            db.ref('alarma_evento').set({ id: Math.random(), tipo: "TIMBRE", info: "Llamada externa", timestamp: Date.now() });
-            Swal.fire({ title: "LLAMANDO...", icon: "success", timer: 2000, showConfirmButton: false });
+            // Alerta Especial de Éxito con Imagen
+            Swal.fire({
+                title: configExito.mensaje,
+                imageUrl: configExito.imagen || 'https://via.placeholder.com/300x200?text=GRACIAS',
+                imageWidth: 300,
+                imageAlt: 'Éxito',
+                confirmButtonColor: '#E91E63'
+            });
         }
 
         function modoAdmin() {
-            const p = prompt("Clave:");
-            if(p === "2025") {
+            if(prompt("Clave:") === "2025") {
                 document.getElementById('panelAdmin').classList.remove('hidden');
                 escucharPedidos();
             }
@@ -359,77 +358,83 @@
 
         function cerrarAdmin() { document.getElementById('panelAdmin').classList.add('hidden'); }
 
+        function escucharPedidos() {
+            db.ref('pedidos').on('value', snap => {
+                const list = document.getElementById('lista-pedidos');
+                list.innerHTML = "";
+                
+                // Ordenar pedidos por status (Rojo -> Amarillo -> Verde)
+                let peds = [];
+                snap.forEach(child => { let p = child.val(); p.key = child.key; peds.push(p); });
+                const orden = { 'rojo': 1, 'amarillo': 2, 'verde': 3 };
+                peds.sort((a, b) => orden[a.status] - orden[b.status]);
+
+                peds.forEach(ped => {
+                    list.innerHTML += `
+                        <div class="bg-black/40 p-4 rounded-2xl status-${ped.status} text-[10px]">
+                            <div class="flex justify-between items-start mb-2">
+                                <span class="font-black text-[var(--lime)]">Bs. ${ped.total.toLocaleString('de-DE')}</span>
+                                <div class="flex gap-2 no-print">
+                                    <select onchange="cambiarStatus('${ped.key}', this.value)" class="bg-white/10 rounded px-1">
+                                        <option value="rojo" ${ped.status==='rojo'?'selected':''}>Inmediato</option>
+                                        <option value="amarillo" ${ped.status==='amarillo'?'selected':''}>Mediano</option>
+                                        <option value="verde" ${ped.status==='verde'?'selected':''}>Largo</option>
+                                    </select>
+                                    <button onclick="borrarPedidoIndividual('${ped.key}')" class="text-red-500"><i class="fas fa-check-double"></i></button>
+                                </div>
+                            </div>
+                            <p><b>Items:</b> ${ped.items.map(i => i.nombre + ' (x'+i.cantidad+')').join(', ')}</p>
+                            <p><b>Pago:</b> ${ped.metodo} | <b>Tel:</b> ${ped.tel} | <b>Ref:</b> ${ped.ref || 'S/R'}</p>
+                            <p class="text-gray-500 uppercase">${ped.fecha}</p>
+                        </div>`;
+                });
+            });
+        }
+
+        function cambiarStatus(key, val) { db.ref('pedidos/' + key).update({ status: val }); }
+
+        function borrarPedidoIndividual(key) {
+            if(confirm("¿Marcar pedido como completado y eliminar?")) db.ref('pedidos/' + key).remove();
+        }
+
+        function descargarPDF() {
+            const element = document.getElementById('lista-pedidos');
+            const opt = {
+                margin: 1,
+                filename: 'pedidos_rs_art.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, backgroundColor: '#0F091A' },
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save();
+        }
+
         function guardarProducto() {
             const n = document.getElementById('adm-nombre').value;
             const p = document.getElementById('adm-precio').value;
             const o = document.getElementById('adm-obs').value;
             const i1 = document.getElementById('adm-img1').value;
-            if(!n || !p || !i1) return Swal.fire("Error", "Faltan campos", "warning");
+            if(!n || !p || !i1) return Swal.fire("Error", "Faltan datos", "warning");
             db.ref('productos').push({ nombre: n, precio: p, obs: o, img1: i1 });
             Swal.fire("Guardado", "", "success");
             document.getElementById('adm-nombre').value = "";
             document.getElementById('adm-precio').value = "";
         }
 
-        function eliminarProducto(key) {
-            if(confirm("¿Borrar?")) db.ref('productos/' + key).remove();
+        function eliminarProducto(k) { if(confirm("¿Borrar?")) db.ref('productos/' + k).remove(); }
+        function borrarPedidos() { if(confirm("¿Borrar TODO el historial?")) db.ref('pedidos').remove(); }
+        function tocarTimbreSolo() {
+            db.ref('alarma_evento').set({ id: Math.random(), tipo: "TIMBRE", info: "Llamada cliente", timestamp: Date.now() });
+            Swal.fire({ title: "LLAMANDO...", icon: "success", timer: 1500, showConfirmButton: false });
         }
 
-        function escucharPedidos() {
-            db.ref('pedidos').on('value', snap => {
-                const list = document.getElementById('lista-pedidos');
-                const listPrint = document.getElementById('lista-pedidos-print');
-                list.innerHTML = ""; listPrint.innerHTML = "<h1>REPORTE DE PEDIDOS RS ART</h1>";
-                
-                snap.forEach(child => {
-                    const ped = child.val();
-                    const card = `
-                        <div class="bg-black/40 p-4 rounded-2xl border-l-4 border-[var(--magenta)] text-xs">
-                            <div class="flex justify-between font-black text-[var(--lime)] mb-2">
-                                <span>TOTAL: Bs. ${ped.total.toLocaleString('de-DE')}</span>
-                                <span class="text-gray-500">${ped.fecha}</span>
-                            </div>
-                            <p><b>Productos:</b> ${ped.items.map(i => i.nombre + ' (x'+i.cantidad+')').join(', ')}</p>
-                            <p><b>Pago:</b> ${ped.metodo}</p>
-                            <p><b>Ref:</b> <span class="text-[var(--lime)]">${ped.referencia || 'N/A'}</span></p>
-                            ${ped.comentario ? `<p class="italic text-gray-400">Obs: ${ped.comentario}</p>` : ''}
-                        </div>`;
-                    list.innerHTML += card;
-                    listPrint.innerHTML += `<div style="border:1px solid #000; padding:10px; margin:10px;">${card}</div>`;
-                });
-            });
-        }
-
-        function imprimirPedidos() { window.print(); }
-
-        function borrarPedidos() {
-            Swal.fire({
-                title: '¿BORRAR TODOS LOS PEDIDOS?',
-                text: "Esta acción limpiará el historial por completo",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                confirmButtonText: 'SÍ, LIMPIAR TODO'
-            }).then((result) => {
-                if (result.isConfirmed) db.ref('pedidos').remove();
-            });
-        }
-
-        // Sistema de Alarma
         db.ref('alarma_evento').on('value', snap => {
-            const data = snap.val();
-            if(!data) return;
+            const data = snap.val(); if(!data) return;
             const audio = document.getElementById('sonidoSirena');
             document.getElementById('cuerpo').classList.add('alarm-on');
             audio.play();
-            Swal.fire({
-                title: data.tipo === "COMPRA" ? "💰 ¡NUEVO PEDIDO!" : "🔔 ¡TIMBRE!",
-                text: data.info,
-                icon: "warning",
-                confirmButtonText: "Atender"
-            }).then(() => {
-                audio.pause();
-                document.getElementById('cuerpo').classList.remove('alarm-on');
+            Swal.fire({ title: data.tipo, text: data.info, icon: "warning" }).then(() => {
+                audio.pause(); document.getElementById('cuerpo').classList.remove('alarm-on');
             });
         });
     </script>
