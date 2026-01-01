@@ -20,11 +20,9 @@
         :root { --purple: #2D1B4E; --lime: #C6FF00; --magenta: #E91E63; --dark: #0F091A; }
         body { background: var(--dark); color: white; font-family: 'Inter', sans-serif; scroll-behavior: smooth; }
         
-        /* Animación Alarma */
         .alarm-on { animation: police-flash 0.3s infinite; }
         @keyframes police-flash { 0% { background: #ff0000; } 50% { background: #0000ff; } 100% { background: #ff0000; } }
 
-        /* Botón Timbre Gigante */
         .big-bell-container {
             background: linear-gradient(45deg, #e91e63, #2d1b4e);
             border: 4px solid var(--lime);
@@ -39,21 +37,26 @@
             100% { transform: scale(1); }
         }
 
-        /* Estilos UI */
         .swiper { width: 100%; height: 350px; border-radius: 25px; }
         .card-service { background: rgba(255,255,255,0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; transition: 0.4s; overflow: hidden; }
         .card-service:hover { border-color: var(--lime); transform: translateY(-8px); }
         
-        /* Scrollbar */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: var(--dark); }
         ::-webkit-scrollbar-thumb { background: var(--purple); border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--magenta); }
-
+        
         .btn-magenta { background: var(--magenta); transition: 0.3s; }
         .btn-magenta:hover { filter: brightness(1.2); transform: scale(1.05); }
         
         .admin-modal { background: rgba(15, 9, 26, 0.98); backdrop-filter: blur(20px); }
+
+        /* Estilo para Impresión */
+        @media print {
+            body * { visibility: hidden; }
+            #lista-pedidos-print, #lista-pedidos-print * { visibility: visible; color: black !important; }
+            #lista-pedidos-print { position: absolute; left: 0; top: 0; width: 100%; }
+            .no-print { display: none !important; }
+        }
     </style>
 </head>
 <body id="cuerpo">
@@ -73,7 +76,7 @@
         </div>
     </nav>
 
-    <!-- Botón Timbre Gigante (Estatico al inicio) -->
+    <!-- Botón Timbre -->
     <section class="container mx-auto p-6">
         <div onclick="tocarTimbreSolo()" class="big-bell-container bell-pulse rounded-3xl p-8 flex flex-col items-center justify-center cursor-pointer group">
             <i class="fas fa-bell text-6xl mb-4 group-hover:animate-bounce"></i>
@@ -82,373 +85,353 @@
         </div>
     </section>
 
-    <!-- Slider Profesional -->
+    <!-- Slider -->
     <section class="p-6 container mx-auto">
         <div class="swiper mySwiper">
-            <div class="swiper-wrapper">
-                <div class="swiper-slide"><img src="img2.png" alt="Slider 1"></div>
-                <div class="swiper-slide"><img src="RTRT.png" alt="Slider 2"></div>
-                 <div class="swiper-slide"><img src="IMG.png" alt="Slider 3"></div>
-                 <div class="swiper-slide"><img src="img1.png" alt="Slider 4"></div>
-                    <video autoplay muted loop playsinline class="w-full h-full object-cover">
-                        <source src="rs.mp4" type="video/mp4">
-                    </video>
-                </div>
+            <div class="swiper-wrapper" id="slider-content">
+                <div class="swiper-slide"><img src="img2.png" class="w-full h-full object-cover"></div>
+                <div class="swiper-slide"><img src="RTRT.png" class="w-full h-full object-cover"></div>
+                <div class="swiper-slide"><img src="IMG.png" class="w-full h-full object-cover"></div>
             </div>
             <div class="swiper-pagination"></div>
         </div>
     </section>
 
-    <!-- Catálogo de Servicios -->
+    <!-- Catálogo -->
     <main class="container mx-auto p-6 pb-32">
         <div class="flex items-center justify-between mb-10">
             <h2 class="text-3xl font-black italic">CATÁLOGO <span class="text-[var(--magenta)]">RS</span></h2>
             <div id="status-fb" class="text-[10px] font-bold px-3 py-1 bg-white/5 rounded-full text-gray-500">CONECTANDO...</div>
         </div>
-        <div id="lista-productos" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <!-- Cargado dinámicamente -->
-        </div>
+        <div id="lista-productos" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
     </main>
 
-    <!-- PANEL ADMINISTRADOR (MODAL FULL SCREEN) -->
+    <!-- PANEL ADMINISTRADOR -->
     <div id="panelAdmin" class="hidden fixed inset-0 z-[1000] admin-modal overflow-y-auto p-6">
         <div class="container mx-auto">
             <div class="flex justify-between items-center mb-10 border-b border-white/10 pb-5">
                 <div>
                     <h2 class="text-4xl font-black text-[var(--lime)]">PANEL DE CONTROL</h2>
-                    <p class="text-gray-500">Gestión de inventario y pedidos en tiempo real</p>
+                    <p class="text-gray-500 font-bold uppercase text-xs">Gestión RS ART STUDIO</p>
                 </div>
                 <button onclick="cerrarAdmin()" class="bg-white/5 w-12 h-12 rounded-full text-2xl hover:bg-red-500 transition">&times;</button>
             </div>
 
             <div class="grid grid-cols-1 xl:grid-cols-3 gap-10">
-                <!-- Columna 1: Formulario Carga -->
-                <div class="bg-white/5 p-8 rounded-3xl border border-white/10">
-                    <h3 class="text-xl mb-6 font-bold flex items-center gap-2"><i class="fas fa-plus-circle text-[var(--lime)]"></i> <span id="form-title">Nuevo Producto</span></h3>
-                    <div class="space-y-4">
-                        <input type="hidden" id="adm-key">
-                        <div class="grid grid-cols-2 gap-4">
-                            <div class="col-span-2">
-                                <label class="text-xs text-gray-400 ml-2">Nombre del Servicio</label>
-                                <input type="text" id="adm-nombre" class="w-full bg-black/50 p-4 rounded-xl border border-white/10 outline-none focus:border-[var(--lime)] transition">
-                            </div>
-                            <div>
-                                <label class="text-xs text-gray-400 ml-2">Precio (Bs.)</label>
-                                <input type="number" id="adm-precio" class="w-full bg-black/50 p-4 rounded-xl border border-white/10 outline-none focus:border-[var(--lime)] transition">
-                            </div>
+                <!-- Columna 1: Carga y Configuración de Pagos -->
+                <div class="space-y-6">
+                    <div class="bg-white/5 p-8 rounded-3xl border border-white/10">
+                        <h3 class="text-xl mb-6 font-bold flex items-center gap-2 text-[var(--lime)]"><i class="fas fa-plus-circle"></i> Nuevo Producto</h3>
+                        <div class="space-y-4">
+                            <input type="hidden" id="adm-key">
+                            <input type="text" id="adm-nombre" placeholder="Nombre" class="w-full bg-black/50 p-4 rounded-xl border border-white/10 outline-none">
+                            <input type="number" id="adm-precio" placeholder="Precio Bs." class="w-full bg-black/50 p-4 rounded-xl border border-white/10 outline-none">
+                            <textarea id="adm-obs" placeholder="Descripción" class="w-full bg-black/50 p-4 rounded-xl border border-white/10 outline-none h-24"></textarea>
+                            <input type="file" onchange="convertirBase64(this, 'img1')" class="text-xs block w-full text-gray-500">
+                            <input type="hidden" id="adm-img1">
+                            <button onclick="guardarProducto()" id="btn-save" class="w-full bg-[var(--lime)] text-black font-black py-4 rounded-2xl shadow-lg transition">GUARDAR PRODUCTO</button>
                         </div>
-                        <div>
-                            <label class="text-xs text-gray-400 ml-2">Descripción / Observación</label>
-                            <textarea id="adm-obs" class="w-full bg-black/50 p-4 rounded-xl border border-white/10 outline-none focus:border-[var(--lime)] h-24 transition"></textarea>
-                        </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="text-xs text-gray-400 ml-2">Foto Principal</label>
-                                <input type="file" onchange="convertirBase64(this, 'img1')" class="text-xs block w-full text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-[var(--lime)] file:text-black">
-                                <input type="hidden" id="adm-img1">
-                            </div>
-                            <div>
-                                <label class="text-xs text-gray-400 ml-2">Foto Secundaria</label>
-                                <input type="file" onchange="convertirBase64(this, 'img2')" class="text-xs block w-full text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-[var(--lime)] file:text-black">
-                                <input type="hidden" id="adm-img2">
-                            </div>
-                        </div>
-                        <button onclick="guardarProducto()" id="btn-save" class="w-full bg-[var(--lime)] text-black font-black py-4 rounded-2xl shadow-lg shadow-lime-500/20 hover:scale-[1.02] transition">GUARDAR EN INVENTARIO</button>
-                        <button onclick="resetForm()" id="btn-cancel-edit" class="hidden w-full bg-gray-800 text-white font-bold py-2 rounded-2xl transition">CANCELAR EDICIÓN</button>
                     </div>
-                    
-                    <div class="mt-10 p-6 bg-red-500/10 border border-red-500/20 rounded-2xl">
-                        <h3 class="text-red-500 font-bold mb-4 flex items-center gap-2"><i class="fas fa-broadcast-tower"></i> SISTEMA ALARMA</h3>
-                        <button onclick="desbloquearSonido()" class="w-full bg-blue-600 p-4 rounded-xl font-bold mb-4 shadow-lg shadow-blue-500/20">1. ACTIVAR MONITOR PC</button>
-                        <button onclick="apagarAlarma()" id="btnApagar" class="hidden w-full bg-white text-red-600 p-4 rounded-xl font-black animate-pulse">DETENER ALARMA</button>
+
+                    <!-- NUEVO: Configuración de Datos de Pago -->
+                    <div class="bg-white/5 p-8 rounded-3xl border border-white/10">
+                        <h3 class="text-xl mb-4 font-bold flex items-center gap-2 text-[var(--magenta)]"><i class="fas fa-university"></i> Configurar Pagos</h3>
+                        <div class="space-y-3">
+                            <label class="text-[10px] text-gray-500 uppercase font-bold">Datos Pago Móvil</label>
+                            <textarea id="conf-pago-movil" class="w-full bg-black/50 p-3 rounded-xl border border-white/10 text-xs" placeholder="Ej: Banesco, 0412..., V-1234567"></textarea>
+                            <label class="text-[10px] text-gray-500 uppercase font-bold">Datos Transferencia</label>
+                            <textarea id="conf-transferencia" class="w-full bg-black/50 p-3 rounded-xl border border-white/10 text-xs" placeholder="Ej: Cuenta Corriente, 0102..."></textarea>
+                            <button onclick="guardarConfigPagos()" class="w-full bg-white/10 hover:bg-white/20 text-white font-bold py-3 rounded-xl transition">ACTUALIZAR DATOS</button>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Columna 2: Inventario (Editar/Eliminar) -->
-                <div class="bg-white/5 p-8 rounded-3xl border border-white/10">
+                <!-- Columna 2: Inventario -->
+                <div class="bg-white/5 p-8 rounded-3xl border border-white/10 h-fit">
                     <h3 class="text-xl mb-6 font-bold flex items-center gap-2"><i class="fas fa-boxes text-[var(--lime)]"></i> Inventario</h3>
-                    <div id="inventario-lista" class="space-y-4">
-                        <!-- Items de inventario -->
-                    </div>
+                    <div id="inventario-lista" class="space-y-4"></div>
                 </div>
 
-                <!-- Columna 3: Pedidos Recientes -->
+                <!-- Columna 3: Pedidos -->
                 <div class="bg-white/5 p-8 rounded-3xl border border-white/10">
-                    <h3 class="text-xl mb-6 font-bold flex items-center gap-2"><i class="fas fa-shopping-cart text-[var(--magenta)]"></i> Pedidos Recientes</h3>
-                    <div id="lista-pedidos" class="space-y-4">
-                        <!-- Pedidos -->
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-xl font-bold flex items-center gap-2"><i class="fas fa-shopping-cart text-[var(--magenta)]"></i> Pedidos</h3>
+                        <div class="flex gap-2">
+                            <button onclick="imprimirPedidos()" class="p-2 bg-blue-600 rounded-lg text-xs" title="Imprimir"><i class="fas fa-print"></i></button>
+                            <button onclick="borrarPedidos()" class="p-2 bg-red-600 rounded-lg text-xs" title="Borrar Todo"><i class="fas fa-trash-alt"></i></button>
+                        </div>
                     </div>
+                    <div id="lista-pedidos" class="space-y-4"></div>
+                    <!-- Contenedor oculto para impresión -->
+                    <div id="lista-pedidos-print" class="hidden"></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Audio Alarma Sirena -->
-    <audio id="sonidoSirena" loop>
-        <source src="https://www.soundjay.com/buttons/sounds/beep-01a.mp3" type="audio/mpeg">
-    </audio>
+    <audio id="sonidoSirena" loop><source src="https://www.soundjay.com/buttons/sounds/beep-01a.mp3" type="audio/mpeg"></audio>
 
     <script>
-        // CONFIGURACIÓN FIREBASE (ASEGÚRATE DE USAR TU URL)
         const firebaseConfig = { databaseURL: "https://rs-art-timbre-default-rtdb.firebaseio.com/" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
         let carrito = [];
         let productosData = [];
+        let configPagos = { movil: '', banco: '' };
 
-        // Swiper
         new Swiper(".mySwiper", { loop: true, pagination: { el: ".swiper-pagination" }, autoplay: { delay: 4000 } });
 
-        // 1. Estado de Conexión
-        db.ref('.info/connected').on('value', snap => {
-            const s = document.getElementById('status-fb');
-            if (snap.val()) { s.innerText = "SISTEMA ONLINE"; s.classList.replace('text-gray-500', 'text-lime-400'); }
-            else { s.innerText = "DESCONECTADO"; s.classList.replace('text-lime-400', 'text-red-500'); }
+        // Cargar Configuración de Pagos
+        db.ref('configuracion/pagos').on('value', snap => {
+            if(snap.exists()){
+                configPagos = snap.val();
+                document.getElementById('conf-pago-movil').value = configPagos.movil || '';
+                document.getElementById('conf-transferencia').value = configPagos.banco || '';
+            }
         });
 
-        // 2. Convertir imagen a Base64 para guardar en Firebase
-        function convertirBase64(input, targetId) {
-            const file = input.files[0];
-            const reader = new FileReader();
-            reader.onloadend = () => { document.getElementById('adm-' + targetId).value = reader.result; };
-            if (file) reader.readAsDataURL(file);
+        function guardarConfigPagos() {
+            const movil = document.getElementById('conf-pago-movil').value;
+            const banco = document.getElementById('conf-transferencia').value;
+            db.ref('configuracion/pagos').set({ movil, banco }).then(() => {
+                Swal.fire("Éxito", "Datos de pago actualizados", "success");
+            });
         }
 
-        // 3. Renderizar Productos (Cliente + Inventario Admin)
+        db.ref('.info/connected').on('value', snap => {
+            const s = document.getElementById('status-fb');
+            s.innerText = snap.val() ? "SISTEMA ONLINE" : "DESCONECTADO";
+            s.className = snap.val() ? "text-[10px] font-bold px-3 py-1 bg-lime-500/20 rounded-full text-lime-400" : "text-[10px] font-bold px-3 py-1 bg-red-500/20 rounded-full text-red-500";
+        });
+
+        function convertirBase64(input, targetId) {
+            const reader = new FileReader();
+            reader.onloadend = () => { document.getElementById('adm-' + targetId).value = reader.result; };
+            if (input.files[0]) reader.readAsDataURL(input.files[0]);
+        }
+
         db.ref('productos').on('value', snap => {
             const container = document.getElementById('lista-productos');
             const inventario = document.getElementById('inventario-lista');
-            container.innerHTML = "";
-            inventario.innerHTML = "";
-            productosData = [];
+            container.innerHTML = ""; inventario.innerHTML = ""; productosData = [];
 
             snap.forEach(child => {
-                const p = child.val();
-                p.key = child.key;
+                const p = child.val(); p.key = child.key;
                 productosData.push(p);
 
-                // Tarjeta Cliente
                 container.innerHTML += `
                     <div class="card-service">
-                        <div class="h-56 relative group">
-                            <img src="${p.img1}" class="w-full h-full object-cover">
-                            <img src="${p.img2 || p.img1}" class="w-full h-full object-cover absolute top-0 left-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                        </div>
+                        <img src="${p.img1}" class="w-full h-56 object-cover">
                         <div class="p-6">
                             <h3 class="text-xl font-bold">${p.nombre}</h3>
-                            <p class="text-gray-400 text-xs mt-2 line-clamp-2">${p.obs}</p>
-                            <div class="flex justify-between items-center mt-6">
-                                <div>
-                                    <span class="text-[10px] text-gray-500 block uppercase font-bold">Inversión</span>
-                                    <span class="text-2xl font-black text-[var(--lime)]">Bs. ${parseFloat(p.precio).toLocaleString('de-DE')}</span>
-                                </div>
-                                <button onclick="alCarrito('${p.key}')" class="btn-magenta px-6 py-3 rounded-2xl text-xs font-black italic">
-                                    COMPRAR <i class="fas fa-plus ml-1"></i>
-                                </button>
-                            </div>
+                            <p class="text-2xl font-black text-[var(--lime)] mt-4">Bs. ${parseFloat(p.precio).toLocaleString('de-DE')}</p>
+                            <button onclick="alCarrito('${p.key}')" class="btn-magenta w-full mt-4 py-3 rounded-2xl text-xs font-black italic uppercase">Comprar Servicio</button>
                         </div>
                     </div>`;
 
-                // Item Inventario Admin
                 inventario.innerHTML += `
                     <div class="flex items-center gap-4 bg-black/30 p-3 rounded-2xl border border-white/5">
-                        <img src="${p.img1}" class="w-12 h-12 rounded-lg object-cover">
-                        <div class="flex-1">
-                            <h4 class="text-sm font-bold">${p.nombre}</h4>
-                            <span class="text-xs text-[var(--lime)]">Bs. ${p.precio}</span>
-                        </div>
-                        <div class="flex gap-2">
-                            <button onclick="prepararEdicion('${p.key}')" class="w-8 h-8 bg-blue-500/20 text-blue-400 rounded-lg hover:bg-blue-500 hover:text-white transition"><i class="fas fa-edit text-xs"></i></button>
-                            <button onclick="eliminarProducto('${p.key}')" class="w-8 h-8 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500 hover:text-white transition"><i class="fas fa-trash text-xs"></i></button>
-                        </div>
+                        <div class="flex-1 text-sm font-bold">${p.nombre} <br> <span class="text-[var(--lime)]">Bs. ${p.precio}</span></div>
+                        <button onclick="eliminarProducto('${p.key}')" class="text-red-500 p-2"><i class="fas fa-trash"></i></button>
                     </div>`;
             });
         });
 
-        // 4. Carrito Logic
         function alCarrito(key) {
             const prod = productosData.find(x => x.key === key);
-            carrito.push(prod);
+            // Si el producto ya está en el carrito, no lo duplicamos aquí, dejamos que la cantidad se maneje en el modal
+            const existe = carrito.find(x => x.key === key);
+            if(!existe) {
+                carrito.push({ ...prod, cantidad: 1 });
+            }
             document.getElementById('cart-count').innerText = carrito.length;
-            const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500 });
-            Toast.fire({ icon: 'success', title: 'Producto añadido' });
+            Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Agregado al carrito', showConfirmButton: false, timer: 1500 });
         }
 
         async function verCarrito() {
-            if (carrito.length === 0) return Swal.fire("Carrito Vacío", "No has añadido servicios aún", "info");
+            if (carrito.length === 0) return Swal.fire("Tu carrito está vacío", "", "info");
             
-            let total = carrito.reduce((s, p) => s + parseFloat(p.precio), 0);
-            let itemsHtml = carrito.map(p => `
-                <div class="flex justify-between text-sm py-2 border-b border-gray-100">
-                    <span>${p.nombre}</span>
-                    <span class="font-bold">Bs. ${parseFloat(p.precio).toLocaleString('de-DE')}</span>
-                </div>
-            `).join('');
+            actualizarModalCarrito();
+        }
 
-            const { value: formValues } = await Swal.fire({
-                title: 'RESUMEN DE COMPRA',
-                html: `
-                    <div class="text-left text-gray-800 p-2">
-                        ${itemsHtml}
-                        <div class="flex justify-between text-xl font-black mt-4 text-[var(--magenta)]">
-                            <span>TOTAL:</span>
-                            <span>Bs. ${total.toLocaleString('de-DE')}</span>
-                        </div>
-                        <div class="mt-6 space-y-3">
-                            <label class="block text-xs font-bold text-gray-400 uppercase">Método de Pago</label>
-                            <select id="swal-pago" class="w-full p-4 bg-gray-100 rounded-xl outline-none border-none">
-                                <option value="Pago Móvil">Pago Móvil</option>
-                                <option value="Efectivo">Efectivo</option>
-                                <option value="Transferencia">Transferencia</option>
-                            </select>
-                            <label class="block text-xs font-bold text-gray-400 uppercase">Observaciones del Pedido</label>
-                            <textarea id="swal-obs" class="w-full p-4 bg-gray-100 rounded-xl outline-none h-20" placeholder="Ej: Colores, tallas o información adicional..."></textarea>
-                        </div>
-                    </div>`,
+        function actualizarModalCarrito() {
+            let total = carrito.reduce((s, p) => s + (parseFloat(p.precio) * p.cantidad), 0);
+            
+            let html = `
+                <div class="text-left text-gray-800">
+                    <div class="max-h-60 overflow-y-auto mb-4">
+                        ${carrito.map((p, index) => `
+                            <div class="flex items-center justify-between border-b py-3 gap-2">
+                                <div class="flex-1">
+                                    <p class="font-bold text-sm">${p.nombre}</p>
+                                    <p class="text-xs text-magenta-500 font-bold">Bs. ${parseFloat(p.precio).toLocaleString('de-DE')}</p>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <button onclick="cambiarCant(${index}, -1)" class="w-6 h-6 bg-gray-200 rounded">-</button>
+                                    <span class="font-bold w-4 text-center">${p.cantidad}</span>
+                                    <button onclick="cambiarCant(${index}, 1)" class="w-6 h-6 bg-gray-200 rounded">+</button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="text-xl font-black text-right text-[var(--magenta)] mb-4">
+                        TOTAL: Bs. ${total.toLocaleString('de-DE')}
+                    </div>
+                    <div class="space-y-3">
+                        <select id="swal-metodo" onchange="mostrarInfoPago(this.value)" class="w-full p-3 bg-gray-100 rounded-xl border-none">
+                            <option value="">Seleccione Método de Pago</option>
+                            <option value="Pago Móvil">Pago Móvil</option>
+                            <option value="Transferencia">Transferencia</option>
+                            <option value="Efectivo">Efectivo</option>
+                        </select>
+                        <div id="info-pago-box" class="p-3 bg-blue-50 rounded-xl text-xs hidden border border-blue-200"></div>
+                        <input type="text" id="swal-ref" placeholder="Código de Referencia / Comprobante" class="w-full p-3 bg-gray-100 rounded-xl border-none">
+                        <textarea id="swal-obs" placeholder="Observaciones adicionales..." class="w-full p-3 bg-gray-100 rounded-xl h-20 border-none"></textarea>
+                    </div>
+                </div>`;
+
+            Swal.fire({
+                title: 'RESUMEN DE PEDIDO',
+                html: html,
                 showCancelButton: true,
-                confirmButtonText: 'CONFIRMAR COMPRA',
+                confirmButtonText: 'CONFIRMAR PAGO',
                 confirmButtonColor: '#E91E63',
-                cancelButtonText: 'SEGUIR COMPRANDO'
+                preConfirm: () => {
+                    return {
+                        metodo: document.getElementById('swal-metodo').value,
+                        referencia: document.getElementById('swal-ref').value,
+                        obs: document.getElementById('swal-obs').value
+                    }
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    if(!result.value.metodo) return Swal.fire("Error", "Selecciona un método de pago", "error");
+                    enviarPedido(result.value, total);
+                }
             });
+        }
 
-            if (formValues) {
-                const metodo = document.getElementById('swal-pago').value;
-                const comentario = document.getElementById('swal-obs').value;
-                const pedido = { items: carrito, total, metodo, comentario, fecha: new Date().toLocaleString() };
-                
-                db.ref('pedidos').push(pedido);
-                db.ref('alarma_evento').set({ id: Math.random(), tipo: "COMPRA", info: `Bs. ${total} via ${metodo}`, timestamp: Date.now() });
+        window.cambiarCant = (index, delta) => {
+            carrito[index].cantidad += delta;
+            if (carrito[index].cantidad < 1) carrito.splice(index, 1);
+            document.getElementById('cart-count').innerText = carrito.length;
+            if(carrito.length === 0) Swal.close();
+            else actualizarModalCarrito();
+        };
 
-                carrito = [];
-                document.getElementById('cart-count').innerText = "0";
-                Swal.fire("¡ÉXITO!", "Tu pedido ha sido enviado al administrador.", "success");
+        window.mostrarInfoPago = (val) => {
+            const box = document.getElementById('info-pago-box');
+            box.classList.remove('hidden');
+            if(val === 'Pago Móvil') box.innerText = "TRANSFERIR A: " + (configPagos.movil || "No configurado");
+            else if(val === 'Transferencia') box.innerText = "CUENTA BANCARIA: " + (configPagos.banco || "No configurado");
+            else box.classList.add('hidden');
+        }
+
+        function enviarPedido(datos, total) {
+            const pedido = {
+                items: carrito,
+                total: total,
+                metodo: datos.metodo,
+                referencia: datos.referencia,
+                comentario: datos.obs,
+                fecha: new Date().toLocaleString()
+            };
+            db.ref('pedidos').push(pedido);
+            db.ref('alarma_evento').set({ id: Math.random(), tipo: "COMPRA", info: `Bs. ${total} - ${datos.metodo}`, timestamp: Date.now() });
+            carrito = [];
+            document.getElementById('cart-count').innerText = "0";
+            Swal.fire("¡ÉXITO!", "Tu pedido ha sido procesado.", "success");
+        }
+
+        function tocarTimbreSolo() {
+            db.ref('alarma_evento').set({ id: Math.random(), tipo: "TIMBRE", info: "Llamada externa", timestamp: Date.now() });
+            Swal.fire({ title: "LLAMANDO...", icon: "success", timer: 2000, showConfirmButton: false });
+        }
+
+        function modoAdmin() {
+            const p = prompt("Clave:");
+            if(p === "2025") {
+                document.getElementById('panelAdmin').classList.remove('hidden');
+                escucharPedidos();
             }
         }
 
-        // 5. Timbre Directo
-        function tocarTimbreSolo() {
-            db.ref('alarma_evento').set({ id: Math.random(), tipo: "TIMBRE", info: "Llamada desde botón principal", timestamp: Date.now() });
-            Swal.fire({ title: "LLAMANDO...", text: "El administrador ha sido notificado.", icon: "success", timer: 2000, showConfirmButton: false });
-        }
-
-        // 6. Admin Logic
-        function modoAdmin() {
-            const p = prompt("Clave de Acceso:");
-            if(p === "2025") document.getElementById('panelAdmin').classList.remove('hidden');
-        }
-
         function cerrarAdmin() { document.getElementById('panelAdmin').classList.add('hidden'); }
-
-        function resetForm() {
-            document.querySelectorAll('#panelAdmin input, #panelAdmin textarea').forEach(el => el.value = "");
-            document.getElementById('form-title').innerText = "Nuevo Producto";
-            document.getElementById('btn-save').innerText = "GUARDAR EN INVENTARIO";
-            document.getElementById('btn-cancel-edit').classList.add('hidden');
-            document.getElementById('adm-key').value = "";
-        }
-
-        function prepararEdicion(key) {
-            const p = productosData.find(x => x.key === key);
-            document.getElementById('adm-key').value = p.key;
-            document.getElementById('adm-nombre').value = p.nombre;
-            document.getElementById('adm-precio').value = p.precio;
-            document.getElementById('adm-obs').value = p.obs;
-            document.getElementById('adm-img1').value = p.img1;
-            document.getElementById('adm-img2').value = p.img2;
-            document.getElementById('form-title').innerText = "Editando: " + p.nombre;
-            document.getElementById('btn-save').innerText = "ACTUALIZAR PRODUCTO";
-            document.getElementById('btn-cancel-edit').classList.remove('hidden');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
 
         function guardarProducto() {
             const n = document.getElementById('adm-nombre').value;
             const p = document.getElementById('adm-precio').value;
             const o = document.getElementById('adm-obs').value;
             const i1 = document.getElementById('adm-img1').value;
-            const i2 = document.getElementById('adm-img2').value;
-            const key = document.getElementById('adm-key').value;
-
-            if(!n || !p || !i1) return Swal.fire("Incompleto", "Nombre, Precio y Foto 1 son obligatorios", "warning");
-
-            const data = { nombre: n, precio: p, obs: o, img1: i1, img2: i2 };
-
-            if(key) {
-                db.ref('productos/' + key).update(data);
-                Swal.fire("Actualizado", "El producto se modificó correctamente", "success");
-            } else {
-                db.ref('productos').push(data);
-                Swal.fire("Guardado", "Nuevo producto añadido", "success");
-            }
-            resetForm();
+            if(!n || !p || !i1) return Swal.fire("Error", "Faltan campos", "warning");
+            db.ref('productos').push({ nombre: n, precio: p, obs: o, img1: i1 });
+            Swal.fire("Guardado", "", "success");
+            document.getElementById('adm-nombre').value = "";
+            document.getElementById('adm-precio').value = "";
         }
 
         function eliminarProducto(key) {
-            Swal.fire({
-                title: '¿Eliminar producto?',
-                text: "Esta acción no se puede deshacer",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                confirmButtonText: 'SÍ, BORRAR'
-            }).then(res => { if(res.isConfirmed) db.ref('productos/' + key).remove(); });
+            if(confirm("¿Borrar?")) db.ref('productos/' + key).remove();
         }
 
-        // 7. Monitor Alarma
-        function desbloquearSonido() {
-            const audio = document.getElementById('sonidoSirena');
-            audio.play().then(() => {
-                audio.pause(); audio.currentTime = 0;
-                escucharEventos();
-                Swal.fire("Monitor Activo", "La PC emitirá alertas sonoras", "success");
-            });
-        }
-
-        function escucharEventos() {
-            db.ref('alarma_evento').on('value', snap => {
-                const data = snap.val();
-                if(!data) return;
-                const audio = document.getElementById('sonidoSirena');
-                document.getElementById('cuerpo').classList.add('alarm-on');
-                document.getElementById('btnApagar').classList.remove('hidden');
-                audio.play();
-                
-                Swal.fire({
-                    title: data.tipo === "COMPRA" ? "💰 ¡NUEVA COMPRA!" : "🔔 ¡TIMBRE!",
-                    text: data.info,
-                    icon: "warning",
-                    confirmButtonText: "Atender",
-                    allowOutsideClick: false
-                }).then(() => apagarAlarma());
-            });
-
-            db.ref('pedidos').limitToLast(10).on('value', snap => {
+        function escucharPedidos() {
+            db.ref('pedidos').on('value', snap => {
                 const list = document.getElementById('lista-pedidos');
-                list.innerHTML = "";
+                const listPrint = document.getElementById('lista-pedidos-print');
+                list.innerHTML = ""; listPrint.innerHTML = "<h1>REPORTE DE PEDIDOS RS ART</h1>";
+                
                 snap.forEach(child => {
                     const ped = child.val();
-                    let itemsStr = ped.items.map(i => i.nombre).join(', ');
-                    list.innerHTML += `
-                        <div class="bg-black/40 p-5 rounded-2xl border-l-4 border-[var(--magenta)] mb-4 animate-fadeIn">
-                            <div class="flex justify-between text-[var(--lime)] font-black mb-2">
-                                <span>Bs. ${ped.total.toLocaleString('de-DE')}</span>
-                                <span class="text-[9px] text-gray-500">${ped.fecha}</span>
+                    const card = `
+                        <div class="bg-black/40 p-4 rounded-2xl border-l-4 border-[var(--magenta)] text-xs">
+                            <div class="flex justify-between font-black text-[var(--lime)] mb-2">
+                                <span>TOTAL: Bs. ${ped.total.toLocaleString('de-DE')}</span>
+                                <span class="text-gray-500">${ped.fecha}</span>
                             </div>
-                            <p class="text-[11px] font-bold text-gray-300 uppercase">Productos: <span class="text-white normal-case font-normal">${itemsStr}</span></p>
-                            <p class="text-[11px] font-bold text-gray-300 uppercase">Pago: <span class="text-white normal-case font-normal">${ped.metodo}</span></p>
-                            ${ped.comentario ? `<p class="text-[11px] font-bold text-gray-300 uppercase italic">Obs: <span class="text-white normal-case font-normal">${ped.comentario}</span></p>` : ''}
+                            <p><b>Productos:</b> ${ped.items.map(i => i.nombre + ' (x'+i.cantidad+')').join(', ')}</p>
+                            <p><b>Pago:</b> ${ped.metodo}</p>
+                            <p><b>Ref:</b> <span class="text-[var(--lime)]">${ped.referencia || 'N/A'}</span></p>
+                            ${ped.comentario ? `<p class="italic text-gray-400">Obs: ${ped.comentario}</p>` : ''}
                         </div>`;
+                    list.innerHTML += card;
+                    listPrint.innerHTML += `<div style="border:1px solid #000; padding:10px; margin:10px;">${card}</div>`;
                 });
             });
         }
 
-        function apagarAlarma() {
-            const audio = document.getElementById('sonidoSirena');
-            audio.pause(); audio.currentTime = 0;
-            document.getElementById('cuerpo').classList.remove('alarm-on');
-            document.getElementById('btnApagar').classList.add('hidden');
+        function imprimirPedidos() { window.print(); }
+
+        function borrarPedidos() {
+            Swal.fire({
+                title: '¿BORRAR TODOS LOS PEDIDOS?',
+                text: "Esta acción limpiará el historial por completo",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                confirmButtonText: 'SÍ, LIMPIAR TODO'
+            }).then((result) => {
+                if (result.isConfirmed) db.ref('pedidos').remove();
+            });
         }
+
+        // Sistema de Alarma
+        db.ref('alarma_evento').on('value', snap => {
+            const data = snap.val();
+            if(!data) return;
+            const audio = document.getElementById('sonidoSirena');
+            document.getElementById('cuerpo').classList.add('alarm-on');
+            audio.play();
+            Swal.fire({
+                title: data.tipo === "COMPRA" ? "💰 ¡NUEVO PEDIDO!" : "🔔 ¡TIMBRE!",
+                text: data.info,
+                icon: "warning",
+                confirmButtonText: "Atender"
+            }).then(() => {
+                audio.pause();
+                document.getElementById('cuerpo').classList.remove('alarm-on');
+            });
+        });
     </script>
 </body>
 </html>
