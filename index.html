@@ -3,181 +3,136 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RS ART | Sistema de Alarma Real</title>
-    
+    <title>SISTEMA DE ALARMA RS ART</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
-    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-    
-    <!-- Firebase -->
+    <!-- Firebase App y Database -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
     <style>
-        :root { --purple: #2D1B4E; --lime: #C6FF00; --magenta: #E91E63; --dark: #0F091A; }
-        body { background: var(--dark); color: white; font-family: 'Inter', sans-serif; overflow-x: hidden; }
-
-        /* Efecto de Luces de Policía cuando suena la alarma */
-        .alarm-active { animation: police-lights 0.2s infinite; }
-        @keyframes police-lights {
-            0% { background: #ff0000; }
-            50% { background: #0000ff; }
-            100% { background: #ff0000; }
+        body { background: #0f091a; color: white; font-family: sans-serif; text-align: center; }
+        .btn-timbre { 
+            width: 200px; height: 200px; background: #e91e63; border-radius: 50%; 
+            margin: 50px auto; display: flex; align-items: center; justify-content: center;
+            font-size: 2rem; font-weight: bold; cursor: pointer; border: 8px solid white;
+            box-shadow: 0 0 50px #e91e63; transition: 0.3s;
         }
-
-        .timbre-btn {
-            position: fixed; bottom: 25px; right: 25px;
-            width: 80px; height: 80px; background: var(--magenta);
-            border-radius: 50%; display: flex; flex-direction: column;
-            align-items: center; justify-content: center; z-index: 9999;
-            cursor: pointer; box-shadow: 0 0 30px var(--magenta);
-            animation: pulse-ring 2s infinite; border: 3px solid white;
+        .btn-timbre:active { transform: scale(0.9); }
+        .status-box { padding: 10px; margin: 10px; border-radius: 10px; font-size: 0.8rem; }
+        .alarm-on { animation: flash 0.3s infinite; }
+        @keyframes flash { 
+            0% { background: red; } 50% { background: blue; } 100% { background: red; } 
         }
-
-        @keyframes pulse-ring {
-            0% { transform: scale(1); }
-            70% { transform: scale(1.1); box-shadow: 0 0 0 20px rgba(233, 30, 99, 0); }
-            100% { transform: scale(1); }
-        }
-
-        #adminPanel, #monitorStatus { display: none; }
     </style>
 </head>
-<body id="mainBody">
+<body id="cuerpo">
 
-    <!-- SONIDO DE SIRENA (Link ultra confiable) -->
-    <audio id="audioAlarma" preload="auto" loop>
-        <source src="https://www.soundjay.com/buttons/sounds/alarm-clock-01.mp3" type="audio/mpeg">
+    <h1 class="text-3xl font-black mt-10 text-lime-400">RS ART ALARM</h1>
+    
+    <!-- SEMÁFORO DE ESTADO -->
+    <div id="conexionInfo" class="status-box bg-gray-800 text-gray-400">
+        Estado: <span id="puntos">Intentando conectar con Firebase...</span>
+    </div>
+
+    <!-- BOTÓN DE TIMBRE -->
+    <div class="btn-timbre" onclick="tocarTimbre()">🔔 TIMBRE</div>
+
+    <!-- BOTÓN ADMIN -->
+    <button onclick="modoAdmin()" class="mt-10 text-gray-500 underline">Configuración de Admin</button>
+
+    <!-- PANEL ADMIN -->
+    <div id="panelAdmin" class="hidden mt-10 p-5 border border-dashed border-lime-500 mx-5 rounded-xl">
+        <h2 class="text-xl font-bold text-lime-400">MODO MONITOR ACTIVO</h2>
+        <p class="text-sm">Esta PC sonará cuando alguien toque el timbre.</p>
+        <button onclick="desbloquearSonido()" class="bg-lime-500 text-black font-bold p-4 rounded-full mt-4 w-full">
+            1. CLIC AQUÍ PARA ACTIVAR SONIDO
+        </button>
+        <button onclick="apagarAlarma()" id="btnApagar" class="hidden bg-white text-red-600 font-bold p-4 rounded-full mt-4 w-full">
+            2. APAGAR ALARMA
+        </button>
+    </div>
+
+    <!-- AUDIO -->
+    <audio id="sonidoSirena" loop>
+        <source src="https://www.soundjay.com/buttons/sounds/beep-01a.mp3" type="audio/mpeg">
     </audio>
 
-    <header class="p-4 border-b border-white/10 sticky top-0 z-[1000] bg-[#0F091A]/90 backdrop-blur-xl">
-        <div class="container mx-auto flex justify-between items-center">
-            <div class="text-3xl font-black italic tracking-tighter">RS <span class="text-[var(--lime)]">ART</span></div>
-            <button onclick="loginAdmin()" class="text-[var(--magenta)] font-bold text-xs uppercase border border-[var(--magenta)] px-4 py-2 rounded-full">Admin</button>
-        </div>
-    </header>
-
-    <!-- ESTADO DEL MONITOR -->
-    <div id="monitorStatus" class="bg-green-600 text-white p-3 text-center font-bold">
-        <i class="fas fa-satellite-dish animate-bounce mr-2"></i> MONITOR ACTIVO: Esta PC sonará fuerte.
-        <button onclick="detenerAlarma()" id="btnCerrarAlarma" class="hidden bg-white text-red-600 px-4 py-1 rounded ml-4">APAGAR SONIDO</button>
-    </div>
-
-    <!-- Contenido Simple para pruebas -->
-    <main class="container mx-auto px-6 py-20 text-center">
-        <h1 class="text-5xl font-black mb-6">BIENVENIDO A <span class="text-[var(--lime)]">RS ART</span></h1>
-        <p class="text-gray-400 max-w-lg mx-auto">Si necesitas atención, toca el timbre de la derecha. El administrador recibirá una alerta sonora inmediata.</p>
-    </main>
-
-    <!-- Panel Admin -->
-    <section id="adminPanel" class="container mx-auto p-10 bg-white/5 rounded-3xl border border-dashed border-white/20 m-6">
-        <h2 class="text-2xl font-bold text-[var(--lime)] mb-4">PANEL DE CONTROL</h2>
-        <p>El sistema de escucha está listo. No cierres esta pestaña.</p>
-    </section>
-
-    <!-- BOTÓN TIMBRE (PARA EL CLIENTE) -->
-    <div class="timbre-btn" onclick="clienteTocaTimbre()">
-        <i class="fas fa-bell text-3xl"></i>
-        <span class="text-[10px] font-bold mt-1">TIMBRE</span>
-    </div>
-
     <script>
-        // 1. CONFIGURACIÓN FIREBASE
+        // ========================================================
+        // CONFIGURACIÓN - PEGA TU URL DE FIREBASE AQUÍ ABAJO
+        // ========================================================
         const firebaseConfig = {
-            databaseURL: "https://rs-art-timbre-default-rtdb.firebaseio.com/" // CAMBIA ESTO POR TU URL
+            databaseURL: "https://TU-PROYECTO.firebaseio.com/" 
         };
+        // ========================================================
+
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // 2. LÓGICA DEL CLIENTE (CELULAR)
-        function clienteTocaTimbre() {
-            // Enviamos un ID único por cada toque para que la PC siempre detecte un "cambio"
-            db.ref('sistema_alarma').set({
-                activo: true,
-                timestamp: Date.now(),
-                msg: "🔔 ¡ALGUIEN TOCA EL TIMBRE!"
+        // 1. COMPROBAR CONEXIÓN
+        const statusText = document.getElementById('puntos');
+        db.ref('.info/connected').on('value', (snap) => {
+            if (snap.val() === true) {
+                statusText.innerText = "CONECTADO A FIREBASE OK ✅";
+                statusText.style.color = "#C6FF00";
+            } else {
+                statusText.innerText = "ERROR: No hay conexión a Firebase ❌";
+                statusText.style.color = "red";
+            }
+        });
+
+        // 2. FUNCIÓN DEL CLIENTE (TOCAR TIMBRE)
+        function tocarTimbre() {
+            db.ref('alarma_evento').set({
+                id: Math.floor(Math.random() * 99999), // ID aleatorio para forzar el cambio
+                timestamp: Date.now()
             }).then(() => {
-                Swal.fire('Timbre Enviado', 'El administrador está siendo notificado.', 'success');
+                Swal.fire('¡Timbre enviado!', 'El administrador está escuchando.', 'success');
+            }).catch(err => {
+                Swal.fire('Error', 'No tienes permiso en Firebase. Revisa las reglas.', 'error');
             });
         }
 
-        // 3. LÓGICA DEL ADMINISTRADOR (PC)
-        function iniciarEscuchaAdmin() {
-            const audio = document.getElementById('audioAlarma');
-            const body = document.getElementById('mainBody');
-            const statusLabel = document.getElementById('monitorStatus');
-            const btnCerrar = document.getElementById('btnCerrarAlarma');
+        // 3. FUNCIÓN DEL ADMIN (PC)
+        function modoAdmin() {
+            const pass = prompt("Introduce clave admin:");
+            if (pass === "2025") {
+                document.getElementById('panelAdmin').style.removeProperty('display');
+                document.getElementById('panelAdmin').style.display = "block";
+            }
+        }
 
-            console.log("PC esperando señal...");
+        function desbloquearSonido() {
+            const audio = document.getElementById('sonidoSirena');
+            audio.play().then(() => {
+                audio.pause();
+                audio.currentTime = 0;
+                escucharTimbre();
+                Swal.fire('Monitor Listo', 'La PC ya puede sonar.', 'success');
+            });
+        }
 
-            // Escuchamos Firebase
-            db.ref('sistema_alarma').on('value', (snapshot) => {
-                const data = snapshot.val();
+        function escucharTimbre() {
+            db.ref('alarma_evento').on('value', (snapshot) => {
+                const audio = document.getElementById('sonidoSirena');
+                const cuerpo = document.getElementById('cuerpo');
+                const btnA = document.getElementById('btnApagar');
                 
-                if (data && data.activo === true) {
-                    console.log("¡Señal de alarma recibida!");
-                    
-                    // Acción: SONIDO Y LUCES
-                    audio.play().catch(e => {
-                        console.log("Error al reproducir: El usuario debe interactuar primero.");
-                    });
-                    body.classList.add('alarm-active');
-                    btnCerrar.classList.remove('hidden');
-
-                    Swal.fire({
-                        title: data.msg,
-                        text: 'Atención requerida inmediatamente',
-                        icon: 'warning',
-                        confirmButtonText: 'DETENER ALARMA',
-                        confirmButtonColor: '#d33',
-                        allowOutsideClick: false
-                    }).then(() => {
-                        detenerAlarma();
-                    });
-                }
+                // Si hay un evento nuevo (el timestamp cambió)
+                console.log("Evento recibido en Firebase");
+                audio.play();
+                cuerpo.classList.add('alarm-on');
+                btnA.classList.remove('hidden');
             });
         }
 
-        function detenerAlarma() {
-            const audio = document.getElementById('audioAlarma');
+        function apagarAlarma() {
+            const audio = document.getElementById('sonidoSirena');
             audio.pause();
             audio.currentTime = 0;
-            document.getElementById('mainBody').classList.remove('alarm-active');
-            document.getElementById('btnCerrarAlarma').classList.add('hidden');
-            
-            // Apagamos la señal en Firebase para que no se repita infinitamente
-            db.ref('sistema_alarma').update({ activo: false });
-        }
-
-        function loginAdmin() {
-            Swal.fire({
-                title: 'Acceso Admin',
-                input: 'password',
-                confirmButtonText: 'ENTRAR'
-            }).then(res => {
-                if (res.value === "2025") {
-                    document.getElementById('adminPanel').style.display = 'block';
-                    document.getElementById('monitorStatus').style.display = 'block';
-                    
-                    // PASO CRUCIAL: El navegador bloquea el sonido si el admin no hace "click" primero.
-                    Swal.fire({
-                        title: 'MODO MONITOR',
-                        text: 'Haz clic en el botón para activar los altavoces de esta PC.',
-                        icon: 'info',
-                        confirmButtonText: 'ACTIVAR ALTAVOCES'
-                    }).then(() => {
-                        // Reproducimos y pausamos rápido para "engañar" al navegador y que nos dé permiso
-                        const audio = document.getElementById('audioAlarma');
-                        audio.play().then(() => {
-                            audio.pause();
-                            audio.currentTime = 0;
-                            iniciarEscuchaAdmin(); // Ahora sí empezamos a escuchar Firebase
-                        });
-                    });
-                }
-            });
+            document.getElementById('cuerpo').classList.remove('alarm-on');
+            document.getElementById('btnApagar').classList.add('hidden');
         }
     </script>
 </body>
