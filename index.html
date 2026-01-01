@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RS ART | Premium Studio</title>
+    <title>RS ART | Premium Studio & Alarm</title>
     
     <!-- Librerías -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -12,125 +12,249 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
     
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+    <!-- Firebase Legacy SDK (Más sencillo para HTML directo) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
     <style>
         :root { --purple: #2D1B4E; --lime: #C6FF00; --magenta: #E91E63; --dark: #0F091A; }
-        body { background: var(--dark); color: white; font-family: 'Inter', sans-serif; scroll-behavior: smooth; }
+        
+        body { background: var(--dark); color: white; font-family: 'Inter', sans-serif; overflow-x: hidden; }
+
+        /* Animación de Alarma para la PC */
+        .alarm-active { animation: emergency 0.5s infinite; }
+        @keyframes emergency {
+            0% { background: #0F091A; }
+            50% { background: #6b0000; }
+            100% { background: #0F091A; }
+        }
+
+        /* Estilos UI */
         .swiper { width: 100%; padding: 50px 0; }
-        .swiper-slide { width: 300px; height: 400px; border-radius: 30px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 25px 50px rgba(0,0,0,0.5); }
-        .swiper-slide img, .swiper-slide video { width: 100%; height: 100%; object-fit: cover; }
-        .timbre-btn { position: fixed; bottom: 25px; right: 25px; width: 75px; height: 75px; background: var(--magenta); border-radius: 22px; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; cursor: pointer; box-shadow: 0 0 30px var(--magenta); animation: pulse-ring 2s infinite; border: 2px solid white; }
-        @keyframes pulse-ring { 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(233, 30, 99, 0.7); } 70% { transform: scale(1.05); box-shadow: 0 0 0 20px rgba(233, 30, 99, 0); } 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(233, 30, 99, 0); } }
+        .swiper-slide { width: 300px; height: 400px; border-radius: 30px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); }
+        .swiper-slide img { width: 100%; height: 100%; object-fit: cover; }
+
+        .timbre-btn {
+            position: fixed; bottom: 25px; right: 25px;
+            width: 80px; height: 80px; background: var(--magenta);
+            border-radius: 50%; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; z-index: 9999;
+            cursor: pointer; box-shadow: 0 0 30px var(--magenta);
+            animation: pulse-ring 2s infinite; border: 3px solid white;
+        }
+
+        @keyframes pulse-ring {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(233, 30, 99, 0.7); }
+            70% { transform: scale(1.1); box-shadow: 0 0 0 20px rgba(233, 30, 99, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(233, 30, 99, 0); }
+        }
+
         .card-pro { background: rgba(255,255,255,0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 30px; transition: 0.4s; }
-        .card-pro:hover { transform: translateY(-10px) rotateX(5deg); border-color: var(--lime); }
-        #adminPanel, #monitorPanel { display: none; background: #1a1425; border: 2px dashed var(--lime); margin-bottom: 20px; }
-        header { position: sticky; top: 0; z-index: 1000; background: rgba(15, 9, 26, 0.9); backdrop-filter: blur(15px); }
-        .alarm-active { animation: bg-flash 0.5s infinite; }
-        @keyframes bg-flash { 0% { background: #1a1425; } 50% { background: #b91c1c; } 100% { background: #1a1425; } }
+        
+        #adminPanel, #monitorPanel { display: none; }
     </style>
 </head>
-<body>
+<body id="mainBody">
 
-    <header class="p-4 border-b border-white/10">
+    <!-- Audio de Alarma (Sirena fuerte) -->
+    <audio id="audioAlarma" loop>
+        <source src="https://cdn.pixabay.com/audio/2022/03/10/audio_730623631f.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- Header -->
+    <header class="p-4 border-b border-white/10 sticky top-0 z-[1000] bg-[#0F091A]/90 backdrop-blur-xl">
         <div class="container mx-auto flex justify-between items-center">
             <div class="text-3xl font-black italic tracking-tighter">RS <span class="text-[var(--lime)]">ART</span></div>
-            <nav class="hidden md:flex gap-8 font-bold text-xs uppercase tracking-widest">
-                <a href="#" class="hover:text-[var(--lime)]">Inicio</a>
-                <a href="javascript:void(0)" onclick="loginAdmin()" class="text-[var(--magenta)]">Admin/Monitor</a>
+            
+            <nav class="flex gap-4 items-center">
+                <button onclick="loginAdmin()" class="text-[var(--magenta)] font-bold text-xs uppercase border border-[var(--magenta)] px-4 py-2 rounded-full hover:bg-[var(--magenta)] hover:text-white transition">Panel Admin</button>
+                <button onclick="abrirCarrito()" class="relative bg-white/10 p-3 rounded-full">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span id="cart-count" class="absolute -top-1 -right-1 bg-[var(--lime)] text-black text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">0</span>
+                </button>
             </nav>
-            <button onclick="abrirCarrito()" class="relative bg-white/10 p-3 rounded-full">
-                <i class="fas fa-shopping-cart"></i>
-                <span id="cart-count" class="absolute -top-1 -right-1 bg-[var(--lime)] text-black text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">0</span>
-            </button>
         </div>
     </header>
 
-    <!-- PANEL DE MONITOREO (Solo para el dueño) -->
-    <section id="monitorPanel" class="container mx-auto p-8 rounded-3xl mt-4">
-        <h2 class="text-2xl font-bold mb-4 text-[var(--lime)]">SISTEMA DE ALARMA ACTIVO</h2>
-        <div class="flex flex-wrap gap-4 items-center">
-            <div id="statusDot" class="w-4 h-4 bg-green-500 rounded-full animate-pulse"></div>
-            <p>Escuchando peticiones en tiempo real...</p>
-            <button onclick="detenerAlarma()" id="btnDetener" class="hidden bg-red-600 px-6 py-2 rounded-full font-bold">DETENER ALARMA</button>
-        </div>
-        <audio id="sonidoAlarma" loop src="https://assets.mixkit.co/active_storage/sfx/951/951-preview.mp3"></audio>
-    </section>
+    <!-- Monitor de Alarma (Solo visible para el dueño) -->
+    <div id="monitorPanel" class="bg-yellow-500 text-black p-4 text-center font-bold">
+        <i class="fas fa-shield-alt mr-2"></i> MODO MONITOR ACTIVO: La PC sonará cuando toquen el timbre.
+        <button onclick="detenerAlarma()" id="btnApagar" class="hidden ml-4 bg-red-600 text-white px-4 py-1 rounded">DETENER SONIDO</button>
+    </div>
 
-    <!-- Panel de Administrador -->
-    <section id="adminPanel" class="container mx-auto m-6 p-8 rounded-3xl">
-        <h2 class="text-2xl font-bold mb-6 text-[var(--lime)] italic">GESTIÓN DE INVENTARIO</h2>
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <input type="text" id="adm-nombre" placeholder="Nombre del producto" class="bg-black/50 p-4 rounded-xl outline-none border border-white/10">
-            <input type="number" id="adm-precio" placeholder="Precio ($)" class="bg-black/50 p-4 rounded-xl outline-none border border-white/10">
-            <input type="text" id="adm-img" placeholder="URL de imagen" class="bg-black/50 p-4 rounded-xl outline-none border border-white/10">
-            <textarea id="adm-desc" placeholder="Descripción corta" class="bg-black/50 p-4 rounded-xl outline-none border border-white/10"></textarea>
-        </div>
-        <button onclick="agregarNuevoProducto()" class="mt-6 bg-[var(--lime)] text-black font-black px-10 py-4 rounded-full hover:scale-105 transition">PUBLICAR PRODUCTO</button>
-    </section>
-
-    <!-- Slider 3D -->
-    <section class="py-10">
+    <!-- Slider -->
+    <section class="py-6">
         <div class="swiper mySwiper">
             <div class="swiper-wrapper">
-                <div class="swiper-slide"><video src="https://assets.mixkit.co/videos/preview/mixkit-mechanical-parts-of-a-printing-press-working-43534-large.mp4" autoplay muted loop></video></div>
                 <div class="swiper-slide"><img src="https://images.unsplash.com/photo-1626785774573-4b799315345d?w=600"></div>
                 <div class="swiper-slide"><img src="https://images.unsplash.com/photo-1589118949245-7d38baf380d6?w=600"></div>
+                <div class="swiper-slide"><img src="https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?w=600"></div>
             </div>
         </div>
     </section>
 
-    <!-- Sección de Productos -->
+    <!-- Panel de Administración -->
+    <section id="adminPanel" class="container mx-auto m-6 p-8 border-2 border-dashed border-[var(--lime)] rounded-3xl bg-black/50">
+        <h2 class="text-2xl font-bold mb-6 text-[var(--lime)]">CONFIGURACIÓN DE TIENDA</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <input type="text" id="adm-nombre" placeholder="Nombre Producto" class="bg-white/5 p-4 rounded-xl border border-white/10 outline-none">
+            <input type="number" id="adm-precio" placeholder="Precio $" class="bg-white/5 p-4 rounded-xl border border-white/10 outline-none">
+            <input type="text" id="adm-img" placeholder="URL Imagen" class="bg-white/5 p-4 rounded-xl border border-white/10 outline-none">
+            <button onclick="agregarNuevoProducto()" class="bg-[var(--lime)] text-black font-black rounded-xl">PUBLICAR</button>
+        </div>
+    </section>
+
+    <!-- Catálogo -->
     <main class="container mx-auto px-6 py-10">
-        <h2 id="productos" class="text-4xl font-black mb-12 italic tracking-tighter text-center md:text-left">CATÁLOGO <span class="text-[var(--magenta)]">RS ART</span></h2>
-        <div id="grid-productos" class="grid grid-cols-1 md:grid-cols-3 gap-10"></div>
+        <h2 class="text-4xl font-black mb-12 italic tracking-tighter text-center md:text-left">CATÁLOGO <span class="text-[var(--magenta)]">PREMIUM</span></h2>
+        <div id="grid-productos" class="grid grid-cols-1 md:grid-cols-3 gap-10">
+            <!-- Los productos se cargan aquí -->
+        </div>
     </main>
 
-    <!-- BOTÓN TIMBRE GLOBAL -->
-    <div class="timbre-btn" onclick="activarTimbre()">
-        <i class="fas fa-bell text-2xl"></i>
-        <span class="text-[9px] font-bold mt-1">TIMBRE</span>
+    <!-- Formulario de Datos -->
+    <section class="container mx-auto px-6 py-10">
+        <div class="max-w-2xl mx-auto card-pro p-8">
+            <h3 class="text-xl font-bold mb-4 italic text-[var(--lime)]">ENVIAR DATOS DE DISEÑO</h3>
+            <div class="space-y-4">
+                <input type="text" id="cli-nombre" placeholder="Tu nombre" class="w-full bg-white/5 p-4 rounded-xl border border-white/10">
+                <textarea id="cli-info" placeholder="Detalles de tu pedido..." class="w-full h-32 bg-white/5 p-4 rounded-xl border border-white/10"></textarea>
+                <button onclick="enviarDatos()" class="w-full bg-white text-black font-bold py-4 rounded-xl hover:bg-[var(--lime)] transition">ENVIAR POR WHATSAPP</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- BOTÓN TIMBRE (LO QUE TOCA EL CLIENTE) -->
+    <div class="timbre-btn" onclick="clienteTocaTimbre()">
+        <i class="fas fa-bell text-3xl"></i>
+        <span class="text-[10px] font-bold mt-1">TIMBRE</span>
     </div>
 
     <script>
-        // 1. CONFIGURACIÓN FIREBASE (Crea uno en firebase.google.com)
-        // Reemplaza esto con tus credenciales
+        // ==========================================
+        // 1. CONFIGURACIÓN DE FIREBASE (OBLIGATORIO)
+        // ==========================================
         const firebaseConfig = {
             databaseURL: "https://rs-art-timbre-default-rtdb.firebaseio.com/" 
         };
+        // Reemplaza "AQUÍ_VA_TU_URL_DE_FIREBASE" por algo como "https://rs-art-default-rtdb.firebaseio.com/"
+        
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
+        // Variables Globales
         const MI_NUMERO = "584125966071";
         const CLAVE_ADMIN = "2025";
+        let productos = JSON.parse(localStorage.getItem('rs_art_data')) || [
+            { nombre: "Folder Corporativo", precio: 45, img: "https://images.unsplash.com/photo-1626785774573-4b799315345d?w=600" }
+        ];
+        let carrito = [];
 
         // Inicializar Swiper
         new Swiper(".mySwiper", {
             effect: "coverflow", grabCursor: true, centeredSlides: true, slidesPerView: "auto", loop: true,
-            autoplay: { delay: 3000 }, coverflowEffect: { rotate: 50, stretch: 0, depth: 100, modifier: 1, slideShadows: true },
+            autoplay: { delay: 3000 }, coverflowEffect: { rotate: 50, stretch: 0, depth: 100, modifier: 1, slideShadows: true }
         });
 
-        // Cargar productos
-        let productos = JSON.parse(localStorage.getItem('rs_art_data')) || [
-            { id: 1, nombre: "Folders Corporativos", precio: 45, img: "https://images.unsplash.com/photo-1626785774573-4b799315345d?w=600", desc: "Acabado mate y diseño personalizado." }
-        ];
-        let carrito = [];
+        // ==========================================
+        // 2. LÓGICA DE ALARMA (PC Y CLIENTE)
+        // ==========================================
+
+        // El cliente toca el timbre desde su celular
+        function clienteTocaTimbre() {
+            db.ref('alarma_status').set({
+                activo: true,
+                mensaje: "🔔 ¡ALGUIEN ESTÁ TOCANDO EL TIMBRE!",
+                hora: new Date().toLocaleTimeString()
+            });
+            Swal.fire('Llamando...', 'El encargado escuchará una alarma en el estudio.', 'success');
+        }
+
+        // El dueño (PC) escucha la señal
+        function iniciarEscuchaPC() {
+            const audio = document.getElementById('audioAlarma');
+            const body = document.getElementById('mainBody');
+            const btnApagar = document.getElementById('btnApagar');
+
+            db.ref('alarma_status').on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data && data.activo === true) {
+                    // Acción de Alarma
+                    audio.play().catch(e => console.log("Permiso de audio requerido"));
+                    body.classList.add('alarm-active');
+                    btnApagar.classList.remove('hidden');
+
+                    Swal.fire({
+                        title: data.mensaje,
+                        text: `Recibido a las: ${data.hora}`,
+                        icon: 'warning',
+                        confirmButtonText: 'ATENDER / APAGAR',
+                        confirmButtonColor: '#E91E63',
+                        allowOutsideClick: false
+                    }).then(() => {
+                        detenerAlarma();
+                    });
+                }
+            });
+        }
+
+        function detenerAlarma() {
+            const audio = document.getElementById('audioAlarma');
+            audio.pause();
+            audio.currentTime = 0;
+            document.getElementById('mainBody').classList.remove('alarm-active');
+            document.getElementById('btnApagar').classList.add('hidden');
+            // Resetear Firebase para que deje de sonar
+            db.ref('alarma_status').set({ activo: false });
+        }
+
+        // ==========================================
+        // 3. ADMINISTRACIÓN Y TIENDA
+        // ==========================================
+
+        function loginAdmin() {
+            Swal.fire({
+                title: 'Modo Administrador',
+                input: 'password',
+                inputPlaceholder: 'Clave de acceso',
+                background: '#0F091A', color: '#fff'
+            }).then(res => {
+                if(res.value === CLAVE_ADMIN) {
+                    document.getElementById('adminPanel').style.display = 'block';
+                    document.getElementById('monitorPanel').style.display = 'block';
+                    
+                    Swal.fire({
+                        title: '¿Activar Alarma en esta PC?',
+                        text: 'Debes aceptar para que el navegador tenga permiso de sonar fuerte.',
+                        icon: 'info',
+                        showCancelButton: true,
+                        confirmButtonText: 'SÍ, ACTIVAR MONITOR'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            iniciarEscuchaPC();
+                            // Truco para desbloquear audio
+                            const a = document.getElementById('audioAlarma');
+                            a.play().then(() => { a.pause(); a.currentTime = 0; });
+                        }
+                    });
+                } else {
+                    Swal.fire('Error', 'Clave incorrecta', 'error');
+                }
+            });
+        }
 
         function render() {
             const grid = document.getElementById('grid-productos');
             grid.innerHTML = '';
-            productos.forEach((p, index) => {
+            productos.forEach((p, i) => {
                 grid.innerHTML += `
                     <div class="card-pro overflow-hidden">
-                        <img src="${p.img}" class="w-full h-64 object-cover">
+                        <img src="${p.img}" class="w-full h-56 object-cover">
                         <div class="p-6">
-                            <h3 class="text-xl font-bold">${p.nombre}</h3>
-                            <p class="text-gray-400 text-sm my-3">${p.desc}</p>
-                            <div class="flex justify-between items-center">
+                            <h3 class="font-bold text-xl">${p.nombre}</h3>
+                            <div class="flex justify-between items-center mt-4">
                                 <span class="text-2xl font-black text-[var(--lime)]">$${p.precio}</span>
-                                <button onclick="alCarrito(${index})" class="bg-[var(--magenta)] p-3 rounded-xl"><i class="fas fa-cart-plus"></i></button>
+                                <button onclick="alCarrito(${i})" class="bg-[var(--magenta)] p-3 rounded-xl"><i class="fas fa-cart-plus"></i></button>
                             </div>
                         </div>
                     </div>`;
@@ -140,93 +264,44 @@
         function alCarrito(i) {
             carrito.push(productos[i]);
             document.getElementById('cart-count').innerText = carrito.length;
-        }
-
-        // --- LÓGICA DE ALARMA ---
-
-        // Función para que el cliente dispare la alarma
-        function dispararAlarmaRemota(tipo) {
-            db.ref('alarma').set({
-                activo: true,
-                tipo: tipo,
-                timestamp: Date.now()
-            });
-        }
-
-        function activarTimbre() {
-            dispararAlarmaRemota("¡ALGUIEN TOCA EL TIMBRE!");
-            Swal.fire('Timbre activado', 'El encargado ha sido notificado', 'success');
-            // Opcional: Abrir WhatsApp también
-            // window.open(`https://wa.me/${MI_NUMERO}?text=🔔 Timbreee!`);
+            const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1000, background: '#2D1B4E', color: '#fff' });
+            Toast.fire({ icon: 'success', title: 'Añadido' });
         }
 
         function abrirCarrito() {
-            if(carrito.length === 0) return Swal.fire('Carrito vacío', '', 'info');
+            if(carrito.length === 0) return Swal.fire('Vacío', 'Agrega productos primero', 'info');
             let total = carrito.reduce((s, p) => s + p.precio, 0);
-            
             Swal.fire({
-                title: 'Confirmar Pedido',
-                text: `Total: $${total}. Se activará la alarma del local.`,
+                title: 'Tu Pedido',
+                text: `Total a pagar: $${total}. Al confirmar sonará la alarma en el estudio.`,
                 showCancelButton: true,
-                confirmButtonText: 'Comprar y Notificar'
+                confirmButtonText: 'PEDIR AHORA'
             }).then(res => {
                 if(res.isConfirmed) {
-                    dispararAlarmaRemota("¡NUEVA COMPRA REALIZADA!");
-                    window.open(`https://wa.me/${MI_NUMERO}?text=Nueva Compra de $${total}`);
+                    db.ref('alarma_status').set({ activo: true, mensaje: "💰 ¡NUEVA COMPRA REALIZADA!", hora: new Date().toLocaleTimeString() });
+                    window.open(`https://wa.me/${MI_NUMERO}?text=Nuevo pedido de $${total}`);
                     carrito = [];
                     document.getElementById('cart-count').innerText = '0';
                 }
             });
         }
 
-        // --- LÓGICA DE MONITOR (DUEÑO) ---
-
-        function loginAdmin() {
-            Swal.fire({
-                title: 'Acceso Privado',
-                input: 'password',
-                background: '#0F091A', color: '#fff'
-            }).then(res => {
-                if(res.value === CLAVE_ADMIN) {
-                    document.getElementById('adminPanel').style.display = 'block';
-                    document.getElementById('monitorPanel').style.display = 'block';
-                    iniciarEscuchaAlarma();
-                    Swal.fire('Modo Monitor Activo', 'Deja esta pestaña abierta para recibir alarmas', 'success');
-                }
-            });
+        function agregarNuevoProducto() {
+            const n = document.getElementById('adm-nombre').value;
+            const p = document.getElementById('adm-precio').value;
+            const i = document.getElementById('adm-img').value;
+            if(!n || !p) return;
+            productos.push({ nombre: n, precio: parseFloat(p), img: i || 'https://via.placeholder.com/300' });
+            localStorage.setItem('rs_art_data', JSON.stringify(productos));
+            render();
+            Swal.fire('Publicado', '', 'success');
         }
 
-        function iniciarEscuchaAlarma() {
-            const audio = document.getElementById('sonidoAlarma');
-            const panel = document.getElementById('monitorPanel');
-            const btnD = document.getElementById('btnDetener');
-
-            db.ref('alarma').on('value', (snapshot) => {
-                const data = snapshot.val();
-                if (data && data.activo) {
-                    audio.play();
-                    panel.classList.add('alarm-active');
-                    btnD.classList.remove('hidden');
-                    
-                    Swal.fire({
-                        title: data.tipo,
-                        text: 'Se ha detectado actividad en la aplicación',
-                        icon: 'warning',
-                        confirmButtonText: 'Entendido'
-                    });
-                }
-            });
-        }
-
-        function detenerAlarma() {
-            const audio = document.getElementById('sonidoAlarma');
-            audio.pause();
-            audio.currentTime = 0;
-            document.getElementById('monitorPanel').classList.remove('alarm-active');
-            document.getElementById('btnDetener').classList.add('hidden');
-            
-            // Apagar la alarma en la base de datos para todos
-            db.ref('alarma').update({ activo: false });
+        function enviarDatos() {
+            const n = document.getElementById('cli-nombre').value;
+            const i = document.getElementById('cli-info').value;
+            if(!n || !i) return Swal.fire('Faltan datos', '', 'error');
+            window.open(`https://wa.me/${MI_NUMERO}?text=Datos de Cliente: ${n}%0AInfo: ${i}`);
         }
 
         render();
