@@ -31,26 +31,26 @@
 
         /* Estilos de los Modales (SweetAlert Custom) */
         .premium-swal-popup {
-            background: rgba(15, 9, 26, 0.95) !important;
-            backdrop-filter: blur(20px) !important;
-            border: 1px solid rgba(198, 255, 0, 0.2) !important;
+            background: #0F091A !important; /* Totalmente sólido */
+            border: 1px solid rgba(198, 255, 0, 0.3) !important;
             border-radius: 40px !important;
             color: white !important;
-            padding: 2rem !important;
+            padding: 2.5rem !important;
         }
 
         .premium-input {
-            background: rgba(255,255,255,0.05) !important;
+            background: rgba(255,255,255,0.07) !important;
             border: 1px solid rgba(255,255,255,0.1) !important;
             color: white !important;
-            border-radius: 15px !important;
+            border-radius: 18px !important;
             transition: 0.3s !important;
+            font-size: 0.85rem !important;
         }
         .premium-input:focus { border-color: var(--lime) !important; box-shadow: 0 0 15px rgba(198, 255, 0, 0.2) !important; }
 
-        .status-btn { transition: 0.4s; cursor: pointer; border: 2px solid transparent; }
-        .status-btn:hover { transform: scale(1.05); }
-        .status-btn.active { border-color: white; box-shadow: 0 0 20px rgba(255,255,255,0.3); }
+        .status-btn { transition: 0.4s; cursor: pointer; border: 2px solid transparent; position: relative; }
+        .status-btn:hover { transform: translateY(-3px); filter: brightness(1.2); }
+        .status-btn.active { border-color: white; box-shadow: 0 0 20px rgba(255,255,255,0.2); transform: scale(1.02); }
 
         /* Alarmas y Otros */
         .alarm-on { animation: police-flash 0.3s infinite; }
@@ -75,6 +75,12 @@
         
         .btn-magenta { background: var(--magenta); transition: 0.4s; box-shadow: 0 10px 20px rgba(233, 30, 99, 0.3); }
         .btn-magenta:hover { filter: brightness(1.2); transform: translateY(-3px); }
+
+        /* PANEL ADMINISTRADOR SOLIDO */
+        .admin-modal { 
+            background: #0F091A !important; /* Color sólido para no ver el fondo */
+            z-index: 1000;
+        }
 
         /* Colores de Estatus en Admin */
         .status-rojo { border-left: 8px solid #ff4444 !important; background: rgba(255, 68, 68, 0.05); }
@@ -134,7 +140,7 @@
         <div id="lista-productos" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 fade-in-up" style="animation-delay: 0.4s;"></div>
     </main>
 
-    <!-- PANEL ADMINISTRADOR -->
+    <!-- PANEL ADMINISTRADOR (FONDO SOLIDO) -->
     <div id="panelAdmin" class="hidden fixed inset-0 z-[1000] admin-modal overflow-y-auto p-8">
         <div class="container mx-auto">
             <div class="flex justify-between items-center mb-12 border-b border-white/10 pb-8">
@@ -296,87 +302,88 @@
         async function actualizarModalCarrito() {
             let total = carrito.reduce((s, p) => s + (parseFloat(p.precio) * p.cantidad), 0);
             
-            // Construcción del Modal de Compra Gigante Dark Mode
             const { value: formValues } = await Swal.fire({
-                title: '<span class="text-4xl font-black italic">FINALIZAR COMPRA</span>',
-                width: '700px',
-                padding: '2rem',
+                title: '<span class="text-4xl font-black italic tracking-tighter">CONFIRMAR COMPRA</span>',
+                width: '750px',
+                padding: '2.5rem',
                 customClass: {
                     popup: 'premium-swal-popup animate__animated animate__zoomIn',
-                    confirmButton: 'btn-magenta rounded-2xl px-10 py-4 font-black italic',
-                    cancelButton: 'bg-white/10 rounded-2xl px-10 py-4 font-bold text-white ml-2'
+                    confirmButton: 'btn-magenta rounded-2xl px-12 py-5 font-black italic uppercase tracking-widest shadow-xl',
+                    cancelButton: 'bg-white/10 rounded-2xl px-12 py-5 font-bold text-white ml-2 hover:bg-white/20 transition'
                 },
                 html: `
-                <div class="text-left mt-6">
+                <div class="text-left mt-8">
                     <!-- Lista de Productos -->
-                    <div class="space-y-4 max-h-60 overflow-y-auto pr-4 mb-8">
+                    <h5 class="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] mb-4 ml-2">Resumen de Selección</h5>
+                    <div class="space-y-3 max-h-52 overflow-y-auto pr-3 mb-8">
                         ${carrito.map((p, i) => `
                         <div class="flex items-center justify-between bg-white/5 p-4 rounded-2xl border border-white/5">
                             <div>
-                                <h4 class="font-black text-sm uppercase">${p.nombre}</h4>
+                                <h4 class="font-black text-xs uppercase tracking-tight">${p.nombre}</h4>
                                 <p class="text-[var(--lime)] font-bold text-xs">Bs. ${parseFloat(p.precio).toLocaleString('de-DE')}</p>
                             </div>
-                            <div class="flex items-center gap-4">
-                                <button onclick="cambiarCant(${i},-1)" class="w-8 h-8 bg-white/10 rounded-full hover:bg-[var(--magenta)] transition">-</button>
+                            <div class="flex items-center gap-5">
+                                <button onclick="cambiarCant(${i},-1)" class="w-9 h-9 bg-white/10 rounded-xl hover:bg-[var(--magenta)] transition flex items-center justify-center text-lg">-</button>
                                 <span class="font-black text-xl w-6 text-center">${p.cantidad}</span>
-                                <button onclick="cambiarCant(${i},1)" class="w-8 h-8 bg-white/10 rounded-full hover:bg-[var(--lime)] hover:text-black transition">+</button>
+                                <button onclick="cambiarCant(${i},1)" class="w-9 h-9 bg-white/10 rounded-xl hover:bg-[var(--lime)] hover:text-black transition flex items-center justify-center text-lg">+</button>
                             </div>
                         </div>`).join('')}
                     </div>
 
-                    <div class="flex justify-between items-center bg-[var(--magenta)]/20 p-6 rounded-3xl border border-[var(--magenta)]/30 mb-8">
-                        <span class="font-black text-xl italic">INVERSIÓN TOTAL:</span>
-                        <span class="text-3xl font-black text-[var(--lime)] tracking-tighter">Bs. ${total.toLocaleString('de-DE')}</span>
+                    <div class="flex justify-between items-center bg-white/5 p-6 rounded-3xl border border-white/10 mb-10">
+                        <span class="font-black text-lg italic tracking-tighter uppercase">Inversión Total</span>
+                        <span class="text-4xl font-black text-[var(--lime)] tracking-tighter shadow-lime-500/20">Bs. ${total.toLocaleString('de-DE')}</span>
                     </div>
 
                     <!-- Datos de Pago y Status -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="space-y-4">
-                            <h5 class="text-xs font-black text-gray-500 uppercase tracking-widest ml-2">Datos de Pago</h5>
-                            <select id="swal-metodo" onchange="mostrarInfoPago(this.value)" class="premium-input w-full p-4 outline-none">
-                                <option value="">Canal de Pago</option>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                        <!-- Columna Pago -->
+                        <div class="space-y-5">
+                            <h5 class="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] ml-2">Canal de Inversión</h5>
+                            <select id="swal-metodo" onchange="mostrarInfoPago(this.value)" class="premium-input w-full p-4 outline-none appearance-none">
+                                <option value="">Seleccionar Método</option>
                                 <option value="Pago Móvil">Pago Móvil</option>
                                 <option value="Transferencia">Transferencia</option>
                             </select>
-                            <div id="info-pago-box" class="p-4 bg-white/5 rounded-2xl text-[10px] hidden border border-white/10 text-[var(--lime)] font-bold italic"></div>
-                            <input type="text" id="swal-tel" placeholder="Teléfono de Origen" class="premium-input w-full p-4 outline-none">
-                            <input type="text" id="swal-ref" placeholder="Código de Referencia" class="premium-input w-full p-4 outline-none">
+                            <div id="info-pago-box" class="p-5 bg-[var(--lime)]/10 rounded-2xl text-[11px] hidden border border-[var(--lime)]/20 text-[var(--lime)] font-bold italic leading-relaxed"></div>
+                            <input type="text" id="swal-tel" placeholder="Número Celular Emisor" class="premium-input w-full p-4 outline-none">
+                            <input type="text" id="swal-ref" placeholder="Referencia de Pago" class="premium-input w-full p-4 outline-none">
                         </div>
 
-                        <div class="space-y-4">
-                            <h5 class="text-xs font-black text-gray-500 uppercase tracking-widest ml-2">Status del Servicio</h5>
+                        <!-- Columna Status -->
+                        <div class="space-y-5">
+                            <h5 class="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] ml-2">Tiempo de Entrega</h5>
                             <div class="grid grid-cols-1 gap-3">
-                                <label onclick="selectStatus('rojo')" class="status-btn p-4 bg-red-600/20 border border-red-600/30 rounded-2xl flex items-center justify-between cursor-pointer" id="label-rojo">
-                                    <span class="text-[10px] font-black italic">ENTREGA INMEDIATA</span>
-                                    <i class="fas fa-bolt text-red-500"></i>
+                                <label onclick="selectStatus('rojo')" class="status-btn p-4 bg-red-600/10 border border-red-600/20 rounded-2xl flex items-center justify-between cursor-pointer" id="label-rojo">
+                                    <span class="text-[10px] font-black italic tracking-widest uppercase">Urgente / Inmediato</span>
+                                    <i class="fas fa-bolt text-red-500 text-lg"></i>
                                 </label>
-                                <label onclick="selectStatus('amarillo')" class="status-btn p-4 bg-orange-600/20 border border-orange-600/30 rounded-2xl flex items-center justify-between cursor-pointer" id="label-amarillo">
-                                    <span class="text-[10px] font-black italic">MEDIANO PLAZO</span>
-                                    <i class="fas fa-clock text-orange-500"></i>
+                                <label onclick="selectStatus('amarillo')" class="status-btn p-4 bg-orange-600/10 border border-orange-600/20 rounded-2xl flex items-center justify-between cursor-pointer" id="label-amarillo">
+                                    <span class="text-[10px] font-black italic tracking-widest uppercase">Mediano Plazo</span>
+                                    <i class="fas fa-clock text-orange-500 text-lg"></i>
                                 </label>
-                                <label onclick="selectStatus('verde')" class="status-btn p-4 bg-green-600/20 border border-green-600/30 rounded-2xl flex items-center justify-between cursor-pointer" id="label-verde">
-                                    <span class="text-[10px] font-black italic">LARGO PLAZO</span>
-                                    <i class="fas fa-calendar-alt text-green-500"></i>
+                                <label onclick="selectStatus('verde')" class="status-btn p-4 bg-green-600/10 border border-green-600/20 rounded-2xl flex items-center justify-between cursor-pointer" id="label-verde">
+                                    <span class="text-[10px] font-black italic tracking-widest uppercase">Largo Plazo</span>
+                                    <i class="fas fa-calendar-alt text-green-500 text-lg"></i>
                                 </label>
                                 <input type="hidden" id="swal-status" value="rojo">
                             </div>
                         </div>
                     </div>
-                    <div class="mt-6">
-                         <textarea id="swal-obs" placeholder="Observaciones adicionales..." class="premium-input w-full p-4 h-24 outline-none"></textarea>
+                    <div class="mt-8">
+                         <h5 class="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] ml-2 mb-3">Requerimientos Extra</h5>
+                         <textarea id="swal-obs" placeholder="Describe detalles específicos de tu pedido aquí..." class="premium-input w-full p-5 h-28 outline-none resize-none"></textarea>
                     </div>
                 </div>`,
                 showCancelButton: true,
                 confirmButtonText: 'CONFIRMAR PEDIDO',
                 cancelButtonText: 'VOLVER',
-                showClass: { popup: 'animate__animated animate__fadeInUp' },
-                hideClass: { popup: 'animate__animated animate__fadeOutDown' },
                 preConfirm: () => {
                     const m = document.getElementById('swal-metodo').value;
                     const t = document.getElementById('swal-tel').value;
                     const r = document.getElementById('swal-ref').value;
                     const s = document.getElementById('swal-status').value;
-                    if(!m || !t || !r) { Swal.showValidationMessage('¡Por favor completa los datos de pago!'); return false; }
+                    if(!m || !t || !r) { Swal.showValidationMessage('Completa los datos de pago para procesar'); return false; }
                     return { metodo: m, tel: t, ref: r, status: s, obs: document.getElementById('swal-obs').value };
                 }
             });
@@ -403,8 +410,8 @@
         window.mostrarInfoPago = (v) => {
             const box = document.getElementById('info-pago-box');
             box.classList.toggle('hidden', !v);
-            if(v === 'Pago Móvil') box.innerText = "TRANSFERIR A: " + configPagos.movil;
-            else if(v === 'Transferencia') box.innerText = "BCO: " + configPagos.banco;
+            if(v === 'Pago Móvil') box.innerHTML = `<span class='text-white/50 uppercase block mb-1'>Datos Pago Móvil:</span>${configPagos.movil}`;
+            else if(v === 'Transferencia') box.innerHTML = `<span class='text-white/50 uppercase block mb-1'>Datos Cuenta:</span>${configPagos.banco}`;
         }
 
         function enviarPedido(d, t) {
@@ -419,12 +426,12 @@
             document.getElementById('cart-count').innerText = "0";
 
             Swal.fire({
-                title: '<span class="text-3xl font-black">' + configExito.mensaje + '</span>',
+                title: '<span class="text-3xl font-black italic tracking-tighter">' + configExito.mensaje + '</span>',
                 imageUrl: configExito.imagen || 'https://via.placeholder.com/400x300?text=PEDIDO+RECIBIDO',
                 imageWidth: 400,
                 background: '#0F091A',
                 color: '#fff',
-                confirmButtonText: 'EXCELENTE',
+                confirmButtonText: 'ENTENDIDO',
                 confirmButtonColor: '#E91E63',
                 customClass: { popup: 'rounded-[40px] border border-[var(--lime)]/30' }
             });
@@ -454,14 +461,14 @@
                             <div class="flex justify-between items-start mb-4">
                                 <span class="font-black text-[var(--lime)] text-xl italic">Bs. ${ped.total.toLocaleString('de-DE')}</span>
                                 <div class="flex gap-2 no-print">
-                                    <button onclick="borrarPedidoIndividual('${ped.key}')" class="w-10 h-10 bg-white/5 rounded-xl text-green-500 hover:bg-green-500 hover:text-white transition-all"><i class="fas fa-check"></i></button>
+                                    <button onclick="borrarPedidoIndividual('${ped.key}')" class="w-10 h-10 bg-white/5 rounded-xl text-green-500 hover:bg-green-500 hover:text-white transition-all flex items-center justify-center"><i class="fas fa-check"></i></button>
                                 </div>
                             </div>
                             <div class="space-y-2 text-xs">
                                 <p><b class="text-gray-500 uppercase">Items:</b> ${ped.items.map(i => i.nombre + ' (x'+i.cantidad+')').join(', ')}</p>
                                 <p><b class="text-gray-500 uppercase">Pago:</b> ${ped.metodo} | ${ped.tel}</p>
                                 <p><b class="text-gray-500 uppercase">Ref:</b> <span class="text-white">${ped.ref}</span></p>
-                                <p><b class="text-gray-500 uppercase">Status Cliente:</b> ${ped.status.toUpperCase()}</p>
+                                <p><b class="text-gray-500 uppercase">Status:</b> ${ped.status.toUpperCase()}</p>
                                 <p class="text-[9px] text-gray-600 mt-4">${ped.fecha}</p>
                             </div>
                         </div>`;
