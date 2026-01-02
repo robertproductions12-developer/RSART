@@ -208,10 +208,6 @@
         let productosData = [];
         let configPagos = { movil: '', banco: '' };
         let configExito = { mensaje: '¡GRACIAS POR ELEGIR RS ART!', imagen: '' };
-        
-        // --- CONTROL DE ALARMA ---
-        let modoAdminActivo = false; 
-        let primeraCarga = true; // Ignorar el último timbre guardado al abrir la web
 
         new Swiper(".mySwiper", { loop: true, pagination: { el: ".swiper-pagination" }, autoplay: { delay: 4000 } });
 
@@ -416,7 +412,11 @@
         window.cambiarCant = (i, d) => {
             const item = carrito[i];
             const originalProd = productosData.find(x => x.key === item.key);
-            if(d > 0 && item.cantidad >= originalProd.stock) return Swal.fire("Límite de Stock", "No hay más unidades disponibles", "warning");
+            
+            if(d > 0 && item.cantidad >= originalProd.stock) {
+                return Swal.fire("Límite de Stock", "No hay más unidades disponibles", "warning");
+            }
+            
             item.cantidad += d;
             if (item.cantidad < 1) carrito.splice(i, 1);
             document.getElementById('cart-count').innerText = carrito.length;
@@ -431,21 +431,40 @@
         }
 
         async function enviarPedido(d, t) {
-            const pedido = { items: carrito, total: t, metodo: d.metodo, tel: d.tel, ref: d.ref, obs: d.obs, fecha: new Date().toLocaleString(), status: d.status };
+            const pedido = {
+                items: carrito, total: t, metodo: d.metodo, tel: d.tel, ref: d.ref, obs: d.obs,
+                fecha: new Date().toLocaleString(), status: d.status
+            };
+
+            // 1. Guardar el pedido
             await db.ref('pedidos').push(pedido);
+            
+            // 2. Descontar Stock en Firebase
             for (const item of carrito) {
                 const prodRef = db.ref(`productos/${item.key}/stock`);
-                await prodRef.transaction((cs) => { return (cs || 0) - item.cantidad; });
+                await prodRef.transaction((currentStock) => {
+                    return (currentStock || 0) - item.cantidad;
+                });
             }
-            db.ref('alarma_evento').set({ id: Math.random(), tipo: "COMPRA", info: `Bs. ${t}` });
+
+            db.ref('alarma_evento').set({ id: Math.random(), tipo: "COMPRA", info: `Bs. ${t}`, timestamp: Date.now() });
             carrito = [];
             document.getElementById('cart-count').innerText = "0";
-            Swal.fire({ title: configExito.mensaje, imageUrl: configExito.imagen || 'img2.png', imageWidth: 300, background: '#0F091A', color: '#fff', confirmButtonText: 'CERRAR', confirmButtonColor: '#E91E63' });
+
+            Swal.fire({
+                title: `<span class="text-xl md:text-3xl font-black italic tracking-tighter uppercase">${configExito.mensaje}</span>`,
+                imageUrl: configExito.imagen || 'https://via.placeholder.com/400x300?text=EXITO',
+                imageWidth: 300,
+                background: '#0F091A',
+                color: '#fff',
+                confirmButtonText: 'CERRAR',
+                confirmButtonColor: '#E91E63',
+                customClass: { popup: 'rounded-[30px] border border-[var(--lime)]/30' }
+            });
         }
 
         function modoAdmin() {
             if(prompt("Clave:") === "2025") {
-                modoAdminActivo = true; // Activa la capacidad de escuchar el timbre
                 document.getElementById('panelAdmin').classList.remove('hidden');
                 escucharPedidos();
             }
@@ -461,6 +480,7 @@
                 snap.forEach(child => { let p = child.val(); p.key = child.key; peds.push(p); });
                 const orden = { 'rojo': 1, 'amarillo': 2, 'verde': 3 };
                 peds.sort((a, b) => orden[a.status] - orden[b.status]);
+
                 peds.forEach(ped => {
                     list.innerHTML += `
                         <div class="bg-black/60 p-4 md:p-6 rounded-2xl md:rounded-3xl status-${ped.status} animate__animated animate__fadeInRight">
@@ -491,48 +511,30 @@
             const p = document.getElementById('adm-precio').value;
             const s = document.getElementById('adm-stock').value;
             const i = document.getElementById('adm-img1').value;
-            if(!n || !p || !s || !i) return Swal.fire("Incompleto", "Llena todos los campos", "warning");
+            if(!n || !p || !s || !i) return Swal.fire("Incompleto", "Llena todos los campos incluyendo el stock", "warning");
+            
             db.ref('productos').push({ nombre: n, precio: p, stock: parseInt(s), img1: i });
-            Swal.fire("Éxito", "Producto añadido", "success");
+            Swal.fire("Éxito", "Producto añadido con stock", "success");
+            document.getElementById('adm-nombre').value = "";
+            document.getElementById('adm-precio').value = "";
+            document.getElementById('adm-stock').value = "";
         }
 
         function eliminarProducto(k) { if(confirm("¿Eliminar?")) db.ref('productos/' + k).remove(); }
         function borrarPedidos() { if(confirm("¿Vaciar todo?")) db.ref('pedidos').remove(); }
-        
         function tocarTimbreSolo() {
-            db.ref('alarma_evento').set({ id: Math.random(), tipo: "TIMBRE", info: "Atención cliente" });
+            db.ref('alarma_evento').set({ id: Math.random(), tipo: "TIMBRE", info: "Atención cliente", timestamp: Date.now() });
             Swal.fire({ title: "NOTIFICANDO", icon: "success", timer: 1000, showConfirmButton: false, background: '#0F091A', color: '#fff' });
         }
 
-        // --- LÓGICA DE ALERTA CORREGIDA ---
         db.ref('alarma_evento').on('value', snap => {
-            const data = snap.val();
-            if(!data) return;
-
-            // 1. Elimina la alerta al entrar (ignora la primera lectura al cargar la web)
-            if(primeraCarga) {
-                primeraCarga = false;
-                return;
-            }
-
-            // 2. Solo suena si eres el Administrador
-            if(modoAdminActivo) {
-                const audio = document.getElementById('sonidoSirena');
-                document.getElementById('cuerpo').classList.add('alarm-on');
-                audio.play().catch(() => console.log("Permitir audio tras interacción"));
-                
-                Swal.fire({ 
-                    title: data.tipo, 
-                    text: data.info, 
-                    icon: "warning", 
-                    background: '#0F091A', 
-                    color: '#fff', 
-                    confirmButtonColor: '#E91E63' 
-                }).then(() => {
-                    audio.pause(); 
-                    document.getElementById('cuerpo').classList.remove('alarm-on');
-                });
-            }
+            const data = snap.val(); if(!data) return;
+            const audio = document.getElementById('sonidoSirena');
+            document.getElementById('cuerpo').classList.add('alarm-on');
+            audio.play();
+            Swal.fire({ title: data.tipo, text: data.info, icon: "warning", background: '#0F091A', color: '#fff', confirmButtonColor: '#E91E63' }).then(() => {
+                audio.pause(); document.getElementById('cuerpo').classList.remove('alarm-on');
+            });
         });
     </script>
 </body>
