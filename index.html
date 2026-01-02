@@ -467,6 +467,7 @@
             if(prompt("Clave:") === "2025") {
                 document.getElementById('panelAdmin').classList.remove('hidden');
                 escucharPedidos();
+                activarMonitorAlarma(); // <--- LA ALARMA SOLO SE ACTIVA AQUÍ
             }
         }
 
@@ -522,20 +523,38 @@
 
         function eliminarProducto(k) { if(confirm("¿Eliminar?")) db.ref('productos/' + k).remove(); }
         function borrarPedidos() { if(confirm("¿Vaciar todo?")) db.ref('pedidos').remove(); }
+        
         function tocarTimbreSolo() {
             db.ref('alarma_evento').set({ id: Math.random(), tipo: "TIMBRE", info: "Atención cliente", timestamp: Date.now() });
             Swal.fire({ title: "NOTIFICANDO", icon: "success", timer: 1000, showConfirmButton: false, background: '#0F091A', color: '#fff' });
         }
 
-        db.ref('alarma_evento').on('value', snap => {
-            const data = snap.val(); if(!data) return;
-            const audio = document.getElementById('sonidoSirena');
-            document.getElementById('cuerpo').classList.add('alarm-on');
-            audio.play();
-            Swal.fire({ title: data.tipo, text: data.info, icon: "warning", background: '#0F091A', color: '#fff', confirmButtonColor: '#E91E63' }).then(() => {
-                audio.pause(); document.getElementById('cuerpo').classList.remove('alarm-on');
+        // NUEVA FUNCIÓN: Solo se ejecuta para el administrador
+        function activarMonitorAlarma() {
+            db.ref('alarma_evento').on('value', snap => {
+                const data = snap.val(); 
+                if(!data) return;
+                
+                // Evitar que suene una alarma vieja al cargar
+                const ahora = Date.now();
+                if(ahora - data.timestamp > 10000) return; // Si el evento tiene más de 10 seg, ignorar.
+
+                const audio = document.getElementById('sonidoSirena');
+                document.getElementById('cuerpo').classList.add('alarm-on');
+                audio.play();
+                Swal.fire({ 
+                    title: data.tipo, 
+                    text: data.info, 
+                    icon: "warning", 
+                    background: '#0F091A', 
+                    color: '#fff', 
+                    confirmButtonColor: '#E91E63' 
+                }).then(() => {
+                    audio.pause(); 
+                    document.getElementById('cuerpo').classList.remove('alarm-on');
+                });
             });
-        });
+        }
     </script>
 </body>
 </html>
