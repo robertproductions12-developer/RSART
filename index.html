@@ -208,6 +208,10 @@
         let productosData = [];
         let configPagos = { movil: '', banco: '' };
         let configExito = { mensaje: '¡GRACIAS POR ELEGIR RS ART!', imagen: '' };
+        
+        // VARIABLES NUEVAS PARA CONTROL DE ALARMA
+        let esAdministrador = false; 
+        let tiempoCargaPagina = Date.now();
 
         new Swiper(".mySwiper", { loop: true, pagination: { el: ".swiper-pagination" }, autoplay: { delay: 4000 } });
 
@@ -436,10 +440,8 @@
                 fecha: new Date().toLocaleString(), status: d.status
             };
 
-            // 1. Guardar el pedido
             await db.ref('pedidos').push(pedido);
             
-            // 2. Descontar Stock en Firebase
             for (const item of carrito) {
                 const prodRef = db.ref(`productos/${item.key}/stock`);
                 await prodRef.transaction((currentStock) => {
@@ -465,6 +467,7 @@
 
         function modoAdmin() {
             if(prompt("Clave:") === "2025") {
+                esAdministrador = true; // SE ACTIVA EL MODO ADMIN PARA EL SONIDO
                 document.getElementById('panelAdmin').classList.remove('hidden');
                 escucharPedidos();
             }
@@ -522,18 +525,37 @@
 
         function eliminarProducto(k) { if(confirm("¿Eliminar?")) db.ref('productos/' + k).remove(); }
         function borrarPedidos() { if(confirm("¿Vaciar todo?")) db.ref('pedidos').remove(); }
+        
         function tocarTimbreSolo() {
             db.ref('alarma_evento').set({ id: Math.random(), tipo: "TIMBRE", info: "Atención cliente", timestamp: Date.now() });
             Swal.fire({ title: "NOTIFICANDO", icon: "success", timer: 1000, showConfirmButton: false, background: '#0F091A', color: '#fff' });
         }
 
+        // --- LÓGICA DE ALARMA ACTUALIZADA ---
         db.ref('alarma_evento').on('value', snap => {
-            const data = snap.val(); if(!data) return;
+            const data = snap.val(); 
+            if(!data) return;
+
+            // 1. ELIMINAR ALERTA AL ENTRAR: Solo procesa eventos nuevos (posteriores a la carga de la web)
+            if(data.timestamp < tiempoCargaPagina) return;
+
+            // 2. SOLO EN ADMINISTRADOR: Solo suena si esAdministrador es true
+            if(!esAdministrador) return;
+
             const audio = document.getElementById('sonidoSirena');
             document.getElementById('cuerpo').classList.add('alarm-on');
-            audio.play();
-            Swal.fire({ title: data.tipo, text: data.info, icon: "warning", background: '#0F091A', color: '#fff', confirmButtonColor: '#E91E63' }).then(() => {
-                audio.pause(); document.getElementById('cuerpo').classList.remove('alarm-on');
+            audio.play().catch(e => console.log("Esperando interacción del usuario"));
+            
+            Swal.fire({ 
+                title: data.tipo, 
+                text: data.info, 
+                icon: "warning", 
+                background: '#0F091A', 
+                color: '#fff', 
+                confirmButtonColor: '#E91E63' 
+            }).then(() => {
+                audio.pause(); 
+                document.getElementById('cuerpo').classList.remove('alarm-on');
             });
         });
     </script>
