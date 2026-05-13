@@ -4,11 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RS ART</title>
-    
-    <!-- ICONO DE LA WEB (FAVICON) -->
     <link rel="icon" href="tu-icono.png" type="image/x-icon">
-    
-    <!-- Librerías -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -16,91 +12,46 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    
-    <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-
     <style>
         :root { --purple: #2D1B4E; --lime: #C6FF00; --magenta: #E91E63; --dark: #0F091A; }
         body { background: var(--dark); color: white; font-family: 'Inter', sans-serif; scroll-behavior: smooth; overflow-x: hidden; }
-        
         .fade-in-up { animation: fadeInUp 0.6s ease-out both; }
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .premium-swal-popup {
-            background: #0F091A !important;
-            border: 1px solid rgba(198, 255, 0, 0.3) !important;
-            border-radius: 30px !important;
-            color: white !important;
-            padding: 1.5rem !important;
-        }
-        @media (min-width: 768px) {
-            .premium-swal-popup { border-radius: 40px !important; padding: 2.5rem !important; }
-        }
-
-        .premium-input {
-            background: rgba(255,255,255,0.07) !important;
-            border: 1px solid rgba(255,255,255,0.1) !important;
-            color: white !important;
-            border-radius: 15px !important;
-            transition: 0.3s !important;
-            font-size: 0.85rem !important;
-        }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        .premium-swal-popup { background: #0F091A !important; border: 1px solid rgba(198, 255, 0, 0.3) !important; border-radius: 30px !important; color: white !important; padding: 1.5rem !important; }
+        @media (min-width: 768px) { .premium-swal-popup { border-radius: 40px !important; padding: 2.5rem !important; } }
+        .premium-input { background: rgba(255,255,255,0.07) !important; border: 1px solid rgba(255,255,255,0.1) !important; color: white !important; border-radius: 15px !important; transition: 0.3s !important; font-size: 0.85rem !important; }
         .premium-input:focus { border-color: var(--lime) !important; box-shadow: 0 0 15px rgba(198, 255, 0, 0.2) !important; }
-
         .status-btn { transition: 0.4s; cursor: pointer; border: 2px solid transparent; position: relative; }
         .status-btn:hover { transform: translateY(-3px); filter: brightness(1.2); }
         .status-btn.active { border-color: white; box-shadow: 0 0 20px rgba(255,255,255,0.2); transform: scale(1.02); }
-
         .alarm-on { animation: police-flash 0.3s infinite; }
         @keyframes police-flash { 0% { background: #ff0000; } 50% { background: #0000ff; } 100% { background: #ff0000; } }
-
-        .big-bell-container {
-            background: linear-gradient(45deg, #e91e63, #2d1b4e);
-            border: 3px solid var(--lime);
-            box-shadow: 0 0 30px rgba(198, 255, 0, 0.2);
-            transition: 0.3s;
-        }
+        .big-bell-container { background: linear-gradient(45deg, #e91e63, #2d1b4e); border: 3px solid var(--lime); box-shadow: 0 0 30px rgba(198, 255, 0, 0.2); transition: 0.3s; }
         @media (min-width: 768px) { .big-bell-container { border: 4px solid var(--lime); box-shadow: 0 0 40px rgba(198, 255, 0, 0.3); } }
-        
         .bell-pulse { animation: bell-ring 2s infinite; }
-        @keyframes bell-ring {
-            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(233, 30, 99, 0.7); }
-            70% { transform: scale(1.03); box-shadow: 0 0 0 15px rgba(233, 30, 99, 0); }
-            100% { transform: scale(1); }
-        }
-
+        @keyframes bell-ring { 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(233, 30, 99, 0.7); } 70% { transform: scale(1.03); box-shadow: 0 0 0 15px rgba(233, 30, 99, 0); } 100% { transform: scale(1); } }
         .swiper { width: 100%; height: 250px; border-radius: 20px; }
         @media (min-width: 768px) { .swiper { height: 400px; border-radius: 35px; } }
-
         .card-service { background: rgba(255,255,255,0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 25px; transition: 0.5s; overflow: hidden; }
-        @media (min-width: 768px) { .card-service { border-radius: 30px; } }
         .card-service:hover { border-color: var(--lime); transform: translateY(-5px); }
-        
         .btn-magenta { background: var(--magenta); transition: 0.4s; box-shadow: 0 8px 15px rgba(233, 30, 99, 0.2); }
         .btn-magenta:hover { filter: brightness(1.1); transform: translateY(-2px); }
-
         .admin-modal { background: #0F091A !important; z-index: 1000; }
-
         .status-rojo { border-left: 6px solid #ff4444 !important; background: rgba(255, 68, 68, 0.05); }
         .status-amarillo { border-left: 6px solid #ffbb33 !important; background: rgba(255, 187, 51, 0.05); }
         .status-verde { border-left: 6px solid #00c851 !important; background: rgba(0, 200, 81, 0.05); }
-
         @media print { .no-print { display: none !important; } }
+        .social-card { transition: all 0.3s ease; background: rgba(255,255,255,0.03); backdrop-filter: blur(10px); }
+        .social-card:hover { transform: translateY(-5px); border-color: var(--lime); }
     </style>
 </head>
 <body id="cuerpo">
-
     <nav class="p-4 md:p-6 border-b border-white/5 flex justify-between items-center sticky top-0 bg-[#0F091A]/90 backdrop-blur-xl z-[100]">
         <div class="flex items-center gap-2 md:gap-3 animate__animated animate__fadeInLeft">
             <div class="w-10 h-10 md:w-12 md:h-12 bg-[var(--lime)] rounded-xl md:rounded-2xl flex items-center justify-center text-black font-black text-lg md:text-xl shadow-lg shadow-lime-500/20">RS</div>
-            <div>
-                <h1 class="text-lg md:text-2xl font-black tracking-tighter leading-none">ART <span class="text-[var(--lime)] text-[10px]">STUDIO</span></h1>
-            </div>
+            <div><h1 class="text-lg md:text-2xl font-black tracking-tighter leading-none">ART <span class="text-[var(--lime)] text-[10px]">STUDIO</span></h1></div>
         </div>
         <div class="flex gap-2 md:gap-4 items-center animate__animated animate__fadeInRight">
             <button onclick="verCarrito()" class="relative p-3 md:p-4 bg-white/5 border border-white/10 rounded-xl md:rounded-2xl hover:bg-white/10 transition-all">
@@ -136,6 +87,23 @@
             <div id="status-fb" class="text-[8px] md:text-[10px] font-bold px-3 py-1 md:px-4 md:py-2 bg-white/5 rounded-full text-gray-500 border border-white/10">CONECTANDO...</div>
         </div>
         <div id="lista-productos" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-10 fade-in-up" style="animation-delay: 0.4s;"></div>
+        
+        <!-- SECCIONES DINÁMICAS -->
+        <div id="secciones-container" class="mt-16 space-y-12"></div>
+
+        <!-- REDES SOCIALES -->
+        <div class="mt-20 grid grid-cols-1 md:grid-cols-2 gap-6 fade-in-up" style="animation-delay: 0.5s;">
+            <div class="social-card p-6 md:p-8 rounded-2xl md:rounded-3xl border border-white/10 text-center cursor-pointer transition-all hover:border-pink-500" onclick="abrirInstagram()">
+                <i class="fab fa-instagram text-5xl md:text-6xl text-pink-500 mb-4"></i>
+                <h3 class="text-xl md:text-2xl font-bold">Instagram</h3>
+                <p class="text-gray-400 text-sm mt-2">@rsart_studio</p>
+            </div>
+            <div class="social-card p-6 md:p-8 rounded-2xl md:rounded-3xl border border-white/10 text-center cursor-pointer transition-all hover:border-green-500" onclick="enviarWhatsAppCompra()">
+                <i class="fab fa-whatsapp text-5xl md:text-6xl text-green-500 mb-4"></i>
+                <h3 class="text-xl md:text-2xl font-bold">WhatsApp</h3>
+                <p class="text-gray-400 text-sm mt-2">+58 412 1234567</p>
+            </div>
+        </div>
     </main>
 
     <div id="panelAdmin" class="hidden fixed inset-0 z-[1000] admin-modal overflow-y-auto p-4 md:p-8">
@@ -156,6 +124,9 @@
                             <input type="text" id="conf-exito-msg" placeholder="Mensaje de Éxito" class="w-full bg-black/40 p-4 rounded-xl border border-white/10 text-xs">
                             <input type="file" onchange="convertirBase64(this, 'exito-img')" class="text-[10px] text-gray-500">
                             <input type="hidden" id="adm-exito-img">
+                            <hr class="border-white/10">
+                            <label class="text-white/80 text-sm font-bold">TASA DE CAMBIO (Bs/USD)</label>
+                            <input type="number" id="tasa-cambio" step="0.01" placeholder="Ej: 36.50" class="w-full bg-black/40 p-4 rounded-xl border border-white/10 text-xs">
                             <button onclick="guardarConfigExito()" class="w-full bg-[var(--lime)] text-black font-black py-3 md:py-4 rounded-xl shadow-lg text-xs uppercase">Actualizar Pantalla</button>
                         </div>
                     </div>
@@ -167,6 +138,16 @@
                             <button onclick="guardarConfigPagos()" class="w-full bg-white/10 hover:bg-white/20 text-white font-black py-3 md:py-4 rounded-xl text-xs uppercase">Guardar Bancos</button>
                         </div>
                     </div>
+                    <!-- SECCIONES: agregar nueva sección -->
+                    <div class="bg-white/5 p-6 md:p-8 rounded-[30px] md:rounded-[40px] border border-white/10">
+                        <h3 class="text-xl md:text-2xl mb-4 md:mb-6 font-bold text-[var(--lime)] uppercase italic text-center">Secciones</h3>
+                        <div class="space-y-4">
+                            <input type="text" id="nueva-seccion-titulo" placeholder="Título de la sección" class="w-full bg-black/40 p-4 rounded-xl border border-white/10 text-xs">
+                            <textarea id="nueva-seccion-contenido" placeholder="Contenido HTML o texto de la sección" class="w-full bg-black/40 p-4 rounded-xl border border-white/10 h-24 text-xs"></textarea>
+                            <button onclick="agregarSeccion()" class="w-full bg-[var(--magenta)] font-black py-3 md:py-4 rounded-xl text-xs uppercase">Agregar Sección</button>
+                        </div>
+                        <div id="lista-secciones" class="mt-6 space-y-3 max-h-60 overflow-y-auto"></div>
+                    </div>
                 </div>
 
                 <div class="bg-white/5 p-6 md:p-8 rounded-[30px] md:rounded-[40px] border border-white/10">
@@ -175,7 +156,7 @@
                     <hr class="my-6 border-white/10">
                     <div class="space-y-4">
                         <input type="text" id="adm-nombre" placeholder="Nombre Producto" class="w-full bg-black/40 p-4 rounded-xl border border-white/10 text-xs">
-                        <input type="number" id="adm-precio" placeholder="Precio" class="w-full bg-black/40 p-4 rounded-xl border border-white/10 text-xs">
+                        <input type="number" id="adm-precio" placeholder="Precio (USD)" class="w-full bg-black/40 p-4 rounded-xl border border-white/10 text-xs">
                         <input type="number" id="adm-stock" placeholder="Cantidad Disponible (Stock)" class="w-full bg-black/40 p-4 rounded-xl border border-white/10 text-xs">
                         <input type="file" onchange="convertirBase64(this, 'img1')" class="text-[10px]">
                         <input type="hidden" id="adm-img1">
@@ -207,7 +188,8 @@
         let carrito = [];
         let productosData = [];
         let configPagos = { movil: '', banco: '' };
-        let configExito = { mensaje: '¡GRACIAS POR ELEGIR RS ART!', imagen: '' };
+        let configExito = { mensaje: '¡GRACIAS POR ELEGIR RS ART!', imagen: '', tasa: 36.50 };
+        let seccionesData = [];
 
         new Swiper(".mySwiper", { loop: true, pagination: { el: ".swiper-pagination" }, autoplay: { delay: 4000 } });
 
@@ -215,12 +197,55 @@
             const data = snap.val();
             if(data) {
                 if(data.pagos) configPagos = data.pagos;
-                if(data.exito) configExito = data.exito;
+                if(data.exito) configExito = { ...configExito, ...data.exito };
                 document.getElementById('conf-pago-movil').value = configPagos.movil;
                 document.getElementById('conf-transferencia').value = configPagos.banco;
                 document.getElementById('conf-exito-msg').value = configExito.mensaje;
+                document.getElementById('tasa-cambio').value = configExito.tasa || 36.50;
             }
         });
+
+        // Cargar secciones
+        db.ref('secciones').on('value', snap => {
+            seccionesData = [];
+            snap.forEach(child => { seccionesData.push({ key: child.key, ...child.val() }); });
+            renderSecciones();
+            const listaSec = document.getElementById('lista-secciones');
+            if(listaSec) {
+                listaSec.innerHTML = seccionesData.map(sec => `
+                    <div class="flex justify-between items-center bg-black/40 p-3 rounded-xl">
+                        <span class="text-xs font-bold truncate">${sec.titulo}</span>
+                        <button onclick="eliminarSeccion('${sec.key}')" class="text-red-500 text-sm"><i class="fas fa-trash"></i></button>
+                    </div>
+                `).join('');
+            }
+        });
+
+        function renderSecciones() {
+            const container = document.getElementById('secciones-container');
+            if(!container) return;
+            container.innerHTML = seccionesData.map(sec => `
+                <div class="fade-in-up">
+                    <h2 class="text-2xl md:text-4xl font-black italic text-[var(--lime)] mb-6 tracking-tighter">${sec.titulo}</h2>
+                    <div class="prose prose-invert max-w-none text-white/80">${sec.contenido}</div>
+                </div>
+            `).join('');
+        }
+
+        function agregarSeccion() {
+            const titulo = document.getElementById('nueva-seccion-titulo').value;
+            const contenido = document.getElementById('nueva-seccion-contenido').value;
+            if(!titulo || !contenido) return Swal.fire("Error", "Complete título y contenido", "warning");
+            db.ref('secciones').push({ titulo, contenido }).then(() => {
+                document.getElementById('nueva-seccion-titulo').value = '';
+                document.getElementById('nueva-seccion-contenido').value = '';
+                Swal.fire("Éxito", "Sección agregada", "success");
+            });
+        }
+
+        function eliminarSeccion(key) {
+            if(confirm("¿Eliminar esta sección?")) db.ref('secciones/' + key).remove();
+        }
 
         function guardarConfigPagos() {
             db.ref('configuracion/pagos').set({
@@ -231,9 +256,11 @@
         }
 
         function guardarConfigExito() {
+            const tasa = parseFloat(document.getElementById('tasa-cambio').value) || 36.50;
             db.ref('configuracion/exito').set({
                 mensaje: document.getElementById('conf-exito-msg').value,
-                imagen: document.getElementById('adm-exito-img').value
+                imagen: document.getElementById('adm-exito-img').value,
+                tasa: tasa
             });
             Swal.fire("Éxito", "Configuración guardada", "success");
         }
@@ -254,13 +281,11 @@
             const container = document.getElementById('lista-productos');
             const inventario = document.getElementById('inventario-lista');
             container.innerHTML = ""; inventario.innerHTML = ""; productosData = [];
-            
             snap.forEach(child => {
                 const p = child.val(); p.key = child.key;
                 productosData.push(p);
                 const stockVal = p.stock || 0;
                 const isAgotado = stockVal <= 0;
-
                 container.innerHTML += `
                     <div class="card-service">
                         <div class="h-48 md:h-64 overflow-hidden relative">
@@ -271,22 +296,15 @@
                             <h3 class="text-lg md:text-2xl font-black italic uppercase tracking-tighter truncate">${p.nombre}</h3>
                             <p class="text-[10px] text-gray-500 font-bold uppercase mb-2">Disponibles: <span class="${stockVal < 5 ? 'text-red-500' : 'text-white'}">${stockVal}</span></p>
                             <div class="flex justify-between items-center mt-4">
-                                <p class="text-xl md:text-3xl font-black text-[var(--lime)] tracking-tighter">Bs. ${parseFloat(p.precio).toLocaleString('de-DE')}</p>
-                                <button onclick="${isAgotado ? '' : `alCarrito('${p.key}')`}" 
-                                        class="${isAgotado ? 'bg-gray-700 cursor-not-allowed' : 'btn-magenta'} px-5 py-3 md:px-8 md:py-4 rounded-xl md:rounded-2xl text-[10px] font-black italic uppercase tracking-widest transition-all">
-                                    ${isAgotado ? 'SIN STOCK' : 'Añadir'}
-                                </button>
+                                <p class="text-xl md:text-3xl font-black text-[var(--lime)] tracking-tighter">$${parseFloat(p.precio).toFixed(2)}</p>
+                                <button onclick="${isAgotado ? '' : `alCarrito('${p.key}')`}" class="${isAgotado ? 'bg-gray-700 cursor-not-allowed' : 'btn-magenta'} px-5 py-3 md:px-8 md:py-4 rounded-xl md:rounded-2xl text-[10px] font-black italic uppercase tracking-widest transition-all">${isAgotado ? 'SIN STOCK' : 'Añadir'}</button>
                             </div>
                         </div>
                     </div>`;
-
                 inventario.innerHTML += `
                     <div class="flex items-center gap-3 bg-white/5 p-3 rounded-xl border border-white/5">
                         <img src="${p.img1}" class="w-10 h-10 rounded-lg object-cover">
-                        <div class="flex-1 text-[10px] font-bold uppercase truncate">
-                            ${p.nombre}<br>
-                            <span class="text-[var(--lime)]">Cant: ${stockVal}</span>
-                        </div>
+                        <div class="flex-1 text-[10px] font-bold uppercase truncate">${p.nombre}<br><span class="text-[var(--lime)]">Cant: ${stockVal}</span></div>
                         <button onclick="eliminarProducto('${p.key}')" class="text-red-500 text-sm"><i class="fas fa-trash"></i></button>
                     </div>`;
             });
@@ -295,17 +313,10 @@
         function alCarrito(key) {
             const prod = productosData.find(x => x.key === key);
             const existe = carrito.find(x => x.key === key);
-            
             if(existe) {
-                if(existe.cantidad < prod.stock) {
-                    existe.cantidad += 1;
-                } else {
-                    return Swal.fire("Límite de Stock", "No hay más unidades disponibles", "warning");
-                }
-            } else {
-                carrito.push({ ...prod, cantidad: 1 });
-            }
-            
+                if(existe.cantidad < prod.stock) existe.cantidad += 1;
+                else return Swal.fire("Límite de Stock", "No hay más unidades disponibles", "warning");
+            } else carrito.push({ ...prod, cantidad: 1 });
             document.getElementById('cart-count').innerText = carrito.length;
             const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, background: '#0F091A', color: '#fff' });
             Toast.fire({ icon: 'success', title: 'Agregado al estudio' });
@@ -317,75 +328,52 @@
         }
 
         async function actualizarModalCarrito() {
-            let total = carrito.reduce((s, p) => s + (parseFloat(p.precio) * p.cantidad), 0);
+            const tasa = configExito.tasa || 36.50;
+            let totalUSD = carrito.reduce((s, p) => s + (parseFloat(p.precio) * p.cantidad), 0);
+            let totalBs = totalUSD * tasa;
             const isMobile = window.innerWidth < 768;
 
             const { value: formValues } = await Swal.fire({
                 title: `<span class="${isMobile ? 'text-2xl' : 'text-4xl'} font-black italic tracking-tighter uppercase">Confirmar Compra</span>`,
                 width: isMobile ? '95%' : '750px',
                 padding: isMobile ? '1rem' : '2.5rem',
-                customClass: {
-                    popup: 'premium-swal-popup animate__animated animate__zoomIn',
-                    confirmButton: 'btn-magenta rounded-xl md:rounded-2xl px-8 py-3 md:px-12 md:py-5 font-black italic uppercase tracking-widest text-xs md:text-base',
-                    cancelButton: 'bg-white/10 rounded-xl md:rounded-2xl px-8 py-3 md:px-12 md:py-5 font-bold text-white ml-2 text-xs md:text-base'
-                },
+                customClass: { popup: 'premium-swal-popup animate__animated animate__zoomIn', confirmButton: 'btn-magenta rounded-xl md:rounded-2xl px-8 py-3 md:px-12 md:py-5 font-black italic uppercase tracking-widest text-xs md:text-base', cancelButton: 'bg-white/10 rounded-xl md:rounded-2xl px-8 py-3 md:px-12 md:py-5 font-bold text-white ml-2 text-xs md:text-base' },
                 html: `
                 <div class="text-left mt-4 md:mt-8">
                     <div class="space-y-2 max-h-40 md:max-h-52 overflow-y-auto pr-2 mb-6 md:mb-8">
                         ${carrito.map((p, i) => `
                         <div class="flex items-center justify-between bg-white/5 p-3 md:p-4 rounded-xl md:rounded-2xl border border-white/5">
-                            <div class="flex-1">
-                                <h4 class="font-black text-[10px] md:text-xs uppercase truncate">${p.nombre}</h4>
-                                <p class="text-[var(--lime)] font-bold text-[10px]">Bs. ${parseFloat(p.precio).toLocaleString('de-DE')}</p>
-                            </div>
-                            <div class="flex items-center gap-3 md:gap-5 ml-2">
-                                <button onclick="cambiarCant(${i},-1)" class="w-7 h-7 md:w-9 md:h-9 bg-white/10 rounded-lg md:rounded-xl hover:bg-[var(--magenta)] transition">-</button>
-                                <span class="font-black text-sm md:text-xl w-4 text-center">${p.cantidad}</span>
-                                <button onclick="cambiarCant(${i},1)" class="w-7 h-7 md:w-9 md:h-9 bg-white/10 rounded-lg md:rounded-xl hover:bg-[var(--lime)] hover:text-black transition">+</button>
-                            </div>
+                            <div class="flex-1"><h4 class="font-black text-[10px] md:text-xs uppercase truncate">${p.nombre}</h4><p class="text-[var(--lime)] font-bold text-[10px]">$${parseFloat(p.precio).toFixed(2)}</p></div>
+                            <div class="flex items-center gap-3 md:gap-5 ml-2"><button onclick="cambiarCant(${i},-1)" class="w-7 h-7 md:w-9 md:h-9 bg-white/10 rounded-lg md:rounded-xl hover:bg-[var(--magenta)] transition">-</button><span class="font-black text-sm md:text-xl w-4 text-center">${p.cantidad}</span><button onclick="cambiarCant(${i},1)" class="w-7 h-7 md:w-9 md:h-9 bg-white/10 rounded-lg md:rounded-xl hover:bg-[var(--lime)] hover:text-black transition">+</button></div>
                         </div>`).join('')}
                     </div>
-
                     <div class="flex justify-between items-center bg-white/5 p-4 md:p-6 rounded-2xl md:rounded-3xl border border-white/10 mb-6 md:mb-10">
-                        <span class="font-black text-xs md:text-lg italic uppercase">Total</span>
-                        <span class="text-2xl md:text-4xl font-black text-[var(--lime)] tracking-tighter">Bs. ${total.toLocaleString('de-DE')}</span>
+                        <span class="font-black text-xs md:text-lg italic uppercase">Total (USD)</span>
+                        <span class="text-2xl md:text-4xl font-black text-[var(--lime)] tracking-tighter">$${totalUSD.toFixed(2)}</span>
                     </div>
-
+                    <div class="flex justify-between items-center bg-white/5 p-4 md:p-6 rounded-2xl md:rounded-3xl border border-white/10 mb-6 md:mb-10">
+                        <span class="font-black text-xs md:text-lg italic uppercase">Total (Bs)</span>
+                        <span class="text-2xl md:text-4xl font-black text-[var(--magenta)] tracking-tighter">Bs. ${totalBs.toLocaleString('de-DE', { minimumFractionDigits: 2 })}</span>
+                    </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
                         <div class="space-y-3 md:space-y-5">
                             <h5 class="text-[8px] md:text-[10px] font-black text-gray-500 uppercase tracking-widest ml-2">Pago</h5>
-                            <select id="swal-metodo" onchange="mostrarInfoPago(this.value)" class="premium-input w-full p-3 md:p-4 outline-none appearance-none">
-                                <option value="">Seleccionar</option>
-                                <option value="Pago Móvil">Pago Móvil</option>
-                                <option value="Transferencia">Transferencia</option>
-                            </select>
+                            <select id="swal-metodo" onchange="mostrarInfoPago(this.value)" class="premium-input w-full p-3 md:p-4 outline-none appearance-none"><option value="">Seleccionar</option><option value="Pago Móvil">Pago Móvil</option><option value="Transferencia">Transferencia</option></select>
                             <div id="info-pago-box" class="p-4 bg-[var(--lime)]/10 rounded-xl text-[9px] md:text-[11px] hidden border border-[var(--lime)]/20 text-[var(--lime)] font-bold italic"></div>
                             <input type="text" id="swal-tel" placeholder="Celular Origen" class="premium-input w-full p-3 md:p-4 outline-none">
                             <input type="text" id="swal-ref" placeholder="Referencia" class="premium-input w-full p-3 md:p-4 outline-none">
                         </div>
-
                         <div class="space-y-3 md:space-y-5">
                             <h5 class="text-[8px] md:text-[10px] font-black text-gray-500 uppercase tracking-widest ml-2">Entrega</h5>
                             <div class="grid grid-cols-1 gap-2 md:gap-3">
-                                <label onclick="selectStatus('rojo')" class="status-btn p-3 md:p-4 bg-red-600/10 border border-red-600/20 rounded-xl md:rounded-2xl flex items-center justify-between cursor-pointer" id="label-rojo">
-                                    <span class="text-[8px] md:text-[10px] font-black italic uppercase tracking-widest">Urgente</span>
-                                    <i class="fas fa-bolt text-red-500 text-sm md:text-lg"></i>
-                                </label>
-                                <label onclick="selectStatus('amarillo')" class="status-btn p-3 md:p-4 bg-orange-600/10 border border-orange-600/20 rounded-xl md:rounded-2xl flex items-center justify-between cursor-pointer" id="label-amarillo">
-                                    <span class="text-[8px] md:text-[10px] font-black italic uppercase tracking-widest">Mediano</span>
-                                    <i class="fas fa-clock text-orange-500 text-sm md:text-lg"></i>
-                                </label>
-                                <label onclick="selectStatus('verde')" class="status-btn p-3 md:p-4 bg-green-600/10 border border-green-600/20 rounded-xl md:rounded-2xl flex items-center justify-between cursor-pointer" id="label-verde">
-                                    <span class="text-[8px] md:text-[10px] font-black italic uppercase tracking-widest">Largo</span>
-                                    <i class="fas fa-calendar-alt text-green-500 text-sm md:text-lg"></i>
-                                </label>
+                                <label onclick="selectStatus('rojo')" class="status-btn p-3 md:p-4 bg-red-600/10 border border-red-600/20 rounded-xl md:rounded-2xl flex items-center justify-between cursor-pointer" id="label-rojo"><span class="text-[8px] md:text-[10px] font-black italic uppercase tracking-widest">Urgente</span><i class="fas fa-bolt text-red-500 text-sm md:text-lg"></i></label>
+                                <label onclick="selectStatus('amarillo')" class="status-btn p-3 md:p-4 bg-orange-600/10 border border-orange-600/20 rounded-xl md:rounded-2xl flex items-center justify-between cursor-pointer" id="label-amarillo"><span class="text-[8px] md:text-[10px] font-black italic uppercase tracking-widest">Mediano</span><i class="fas fa-clock text-orange-500 text-sm md:text-lg"></i></label>
+                                <label onclick="selectStatus('verde')" class="status-btn p-3 md:p-4 bg-green-600/10 border border-green-600/20 rounded-xl md:rounded-2xl flex items-center justify-between cursor-pointer" id="label-verde"><span class="text-[8px] md:text-[10px] font-black italic uppercase tracking-widest">Largo</span><i class="fas fa-calendar-alt text-green-500 text-sm md:text-lg"></i></label>
                                 <input type="hidden" id="swal-status" value="rojo">
                             </div>
                         </div>
                     </div>
-                    <div class="mt-6 md:mt-8">
-                         <textarea id="swal-obs" placeholder="Detalles extra del pedido..." class="premium-input w-full p-4 md:p-5 h-20 md:h-28 outline-none resize-none"></textarea>
-                    </div>
+                    <div class="mt-6 md:mt-8"><textarea id="swal-obs" placeholder="Detalles extra del pedido..." class="premium-input w-full p-4 md:p-5 h-20 md:h-28 outline-none resize-none"></textarea></div>
                 </div>`,
                 showCancelButton: true,
                 confirmButtonText: 'CONFIRMAR',
@@ -399,8 +387,7 @@
                     return { metodo: m, tel: t, ref: r, status: s, obs: document.getElementById('swal-obs').value };
                 }
             });
-
-            if (formValues) enviarPedido(formValues, total);
+            if (formValues) enviarPedido(formValues, totalUSD, totalBs, tasa);
         }
 
         window.selectStatus = (val) => {
@@ -412,11 +399,7 @@
         window.cambiarCant = (i, d) => {
             const item = carrito[i];
             const originalProd = productosData.find(x => x.key === item.key);
-            
-            if(d > 0 && item.cantidad >= originalProd.stock) {
-                return Swal.fire("Límite de Stock", "No hay más unidades disponibles", "warning");
-            }
-            
+            if(d > 0 && item.cantidad >= originalProd.stock) return Swal.fire("Límite de Stock", "No hay más unidades disponibles", "warning");
             item.cantidad += d;
             if (item.cantidad < 1) carrito.splice(i, 1);
             document.getElementById('cart-count').innerText = carrito.length;
@@ -430,45 +413,40 @@
             else if(v === 'Transferencia') box.innerHTML = `BANCO:<br>${configPagos.banco}`;
         }
 
-        async function enviarPedido(d, t) {
-            const pedido = {
-                items: carrito, total: t, metodo: d.metodo, tel: d.tel, ref: d.ref, obs: d.obs,
-                fecha: new Date().toLocaleString(), status: d.status
-            };
-
-            // 1. Guardar el pedido
+        async function enviarPedido(d, totalUSD, totalBs, tasa) {
+            const pedido = { items: carrito, totalUSD: totalUSD, totalBs: totalBs, tasa: tasa, metodo: d.metodo, tel: d.tel, ref: d.ref, obs: d.obs, fecha: new Date().toLocaleString(), status: d.status };
             await db.ref('pedidos').push(pedido);
-            
-            // 2. Descontar Stock en Firebase
-            for (const item of carrito) {
-                const prodRef = db.ref(`productos/${item.key}/stock`);
-                await prodRef.transaction((currentStock) => {
-                    return (currentStock || 0) - item.cantidad;
-                });
-            }
-
-            db.ref('alarma_evento').set({ id: Math.random(), tipo: "COMPRA", info: `Bs. ${t}`, timestamp: Date.now() });
+            for (const item of carrito) { const prodRef = db.ref(`productos/${item.key}/stock`); await prodRef.transaction((currentStock) => (currentStock || 0) - item.cantidad); }
+            db.ref('alarma_evento').set({ id: Math.random(), tipo: "COMPRA", info: `$${totalUSD.toFixed(2)}`, timestamp: Date.now() });
+            // Guardar último pedido para WhatsApp
+            localStorage.setItem('ultimoPedido', JSON.stringify(pedido));
             carrito = [];
             document.getElementById('cart-count').innerText = "0";
-
-            Swal.fire({
-                title: `<span class="text-xl md:text-3xl font-black italic tracking-tighter uppercase">${configExito.mensaje}</span>`,
-                imageUrl: configExito.imagen || 'https://via.placeholder.com/400x300?text=EXITO',
-                imageWidth: 300,
-                background: '#0F091A',
-                color: '#fff',
-                confirmButtonText: 'CERRAR',
-                confirmButtonColor: '#E91E63',
-                customClass: { popup: 'rounded-[30px] border border-[var(--lime)]/30' }
-            });
+            Swal.fire({ title: `<span class="text-xl md:text-3xl font-black italic tracking-tighter uppercase">${configExito.mensaje}</span>`, imageUrl: configExito.imagen || 'https://via.placeholder.com/400x300?text=EXITO', imageWidth: 300, background: '#0F091A', color: '#fff', confirmButtonText: 'CERRAR', confirmButtonColor: '#E91E63', customClass: { popup: 'rounded-[30px] border border-[var(--lime)]/30' } });
         }
 
+        function enviarWhatsAppCompra() {
+            const ultimoPedido = localStorage.getItem('ultimoPedido');
+            if(!ultimoPedido) { Swal.fire("Sin compras recientes", "Realiza una compra para recibir la factura por WhatsApp", "info"); return; }
+            const pedido = JSON.parse(ultimoPedido);
+            let mensaje = "🏷️ *FACTURA RS ART* 🏷️%0A";
+            mensaje += `📅 Fecha: ${pedido.fecha}%0A`;
+            mensaje += `💰 Total USD: $${pedido.totalUSD.toFixed(2)}%0A`;
+            mensaje += `💵 Tasa: Bs. ${pedido.tasa}%0A`;
+            mensaje += `💸 Total Bs: Bs. ${pedido.totalBs.toLocaleString('de-DE', { minimumFractionDigits: 2 })}%0A`;
+            mensaje += `🛍️ Productos:%0A`;
+            pedido.items.forEach(item => { mensaje += `- ${item.nombre} (x${item.cantidad}) → $${(parseFloat(item.precio)*item.cantidad).toFixed(2)}%0A`; });
+            mensaje += `📝 Observaciones: ${pedido.obs || "Ninguna"}%0A`;
+            mensaje += `🚚 Tipo de entrega: ${pedido.status.toUpperCase()}%0A`;
+            mensaje += `🎉 ¡Gracias por confiar en RS ART!`;
+            const telefono = "584121234567"; // Número fijo de ejemplo
+            window.open(`https://wa.me/${telefono}?text=${mensaje}`, '_blank');
+        }
+
+        function abrirInstagram() { window.open('https://instagram.com/rsart_studio', '_blank'); }
+
         function modoAdmin() {
-            if(prompt("Clave:") === "2025") {
-                document.getElementById('panelAdmin').classList.remove('hidden');
-                escucharPedidos();
-                activarMonitorAlarma(); // <--- LA ALARMA SOLO SE ACTIVA AQUÍ
-            }
+            if(prompt("Clave:") === "2025") { document.getElementById('panelAdmin').classList.remove('hidden'); escucharPedidos(); activarMonitorAlarma(); }
         }
 
         function cerrarAdmin() { document.getElementById('panelAdmin').classList.add('hidden'); }
@@ -476,85 +454,21 @@
         function escucharPedidos() {
             db.ref('pedidos').on('value', snap => {
                 const list = document.getElementById('lista-pedidos');
-                list.innerHTML = "";
-                let peds = [];
+                list.innerHTML = ""; let peds = [];
                 snap.forEach(child => { let p = child.val(); p.key = child.key; peds.push(p); });
                 const orden = { 'rojo': 1, 'amarillo': 2, 'verde': 3 };
                 peds.sort((a, b) => orden[a.status] - orden[b.status]);
-
-                peds.forEach(ped => {
-                    list.innerHTML += `
-                        <div class="bg-black/60 p-4 md:p-6 rounded-2xl md:rounded-3xl status-${ped.status} animate__animated animate__fadeInRight">
-                            <div class="flex justify-between items-start mb-2 md:mb-4">
-                                <span class="font-black text-[var(--lime)] text-sm md:text-xl italic">Bs. ${ped.total.toLocaleString('de-DE')}</span>
-                                <button onclick="borrarPedidoIndividual('${ped.key}')" class="w-8 h-8 md:w-10 md:h-10 bg-white/5 rounded-lg text-green-500 hover:bg-green-500 hover:text-white transition-all flex items-center justify-center text-xs"><i class="fas fa-check"></i></button>
-                            </div>
-                            <div class="space-y-1 text-[10px] md:text-xs">
-                                <p><b class="text-gray-500 uppercase">Items:</b> ${ped.items.map(i => i.nombre + ' (x'+i.cantidad+')').join(', ')}</p>
-                                <p><b class="text-gray-500 uppercase">Pago:</b> ${ped.metodo} | ${ped.tel}</p>
-                                <p><b class="text-gray-500 uppercase">Ref:</b> <span class="text-white">${ped.ref}</span></p>
-                                <p><b class="text-gray-500 uppercase">Entrega:</b> ${ped.status.toUpperCase()}</p>
-                                <p class="text-[8px] text-gray-600 mt-2">${ped.fecha}</p>
-                            </div>
-                        </div>`;
-                });
+                peds.forEach(ped => { list.innerHTML += `<div class="bg-black/60 p-4 md:p-6 rounded-2xl md:rounded-3xl status-${ped.status} animate__animated animate__fadeInRight"><div class="flex justify-between items-start mb-2 md:mb-4"><span class="font-black text-[var(--lime)] text-sm md:text-xl italic">Bs. ${ped.totalBs.toLocaleString('de-DE')}</span><button onclick="borrarPedidoIndividual('${ped.key}')" class="w-8 h-8 md:w-10 md:h-10 bg-white/5 rounded-lg text-green-500 hover:bg-green-500 hover:text-white transition-all flex items-center justify-center text-xs"><i class="fas fa-check"></i></button></div><div class="space-y-1 text-[10px] md:text-xs"><p><b class="text-gray-500 uppercase">Items:</b> ${ped.items.map(i => i.nombre + ' (x'+i.cantidad+')').join(', ')}</p><p><b class="text-gray-500 uppercase">Pago:</b> ${ped.metodo} | ${ped.tel}</p><p><b class="text-gray-500 uppercase">Ref:</b> <span class="text-white">${ped.ref}</span></p><p><b class="text-gray-500 uppercase">Entrega:</b> ${ped.status.toUpperCase()}</p><p class="text-[8px] text-gray-600 mt-2">${ped.fecha}</p></div></div>`; });
             });
         }
 
         function borrarPedidoIndividual(k) { if(confirm("¿Completar pedido?")) db.ref('pedidos/' + k).remove(); }
-        function descargarPDF() {
-            const element = document.getElementById('lista-pedidos');
-            html2pdf().set({ margin: 1, filename: 'pedidos_rs_art.pdf', jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' } }).from(element).save();
-        }
-
-        function guardarProducto() {
-            const n = document.getElementById('adm-nombre').value;
-            const p = document.getElementById('adm-precio').value;
-            const s = document.getElementById('adm-stock').value;
-            const i = document.getElementById('adm-img1').value;
-            if(!n || !p || !s || !i) return Swal.fire("Incompleto", "Llena todos los campos incluyendo el stock", "warning");
-            
-            db.ref('productos').push({ nombre: n, precio: p, stock: parseInt(s), img1: i });
-            Swal.fire("Éxito", "Producto añadido con stock", "success");
-            document.getElementById('adm-nombre').value = "";
-            document.getElementById('adm-precio').value = "";
-            document.getElementById('adm-stock').value = "";
-        }
-
+        function descargarPDF() { const element = document.getElementById('lista-pedidos'); html2pdf().set({ margin: 1, filename: 'pedidos_rs_art.pdf', jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' } }).from(element).save(); }
+        function guardarProducto() { const n = document.getElementById('adm-nombre').value, p = document.getElementById('adm-precio').value, s = document.getElementById('adm-stock').value, i = document.getElementById('adm-img1').value; if(!n || !p || !s || !i) return Swal.fire("Incompleto", "Llena todos los campos incluyendo el stock", "warning"); db.ref('productos').push({ nombre: n, precio: p, stock: parseInt(s), img1: i }); Swal.fire("Éxito", "Producto añadido con stock", "success"); document.getElementById('adm-nombre').value = ""; document.getElementById('adm-precio').value = ""; document.getElementById('adm-stock').value = ""; }
         function eliminarProducto(k) { if(confirm("¿Eliminar?")) db.ref('productos/' + k).remove(); }
         function borrarPedidos() { if(confirm("¿Vaciar todo?")) db.ref('pedidos').remove(); }
-        
-        function tocarTimbreSolo() {
-            db.ref('alarma_evento').set({ id: Math.random(), tipo: "TIMBRE", info: "Atención cliente", timestamp: Date.now() });
-            Swal.fire({ title: "NOTIFICANDO", icon: "success", timer: 1000, showConfirmButton: false, background: '#0F091A', color: '#fff' });
-        }
-
-        // NUEVA FUNCIÓN: Solo se ejecuta para el administrador
-        function activarMonitorAlarma() {
-            db.ref('alarma_evento').on('value', snap => {
-                const data = snap.val(); 
-                if(!data) return;
-                
-                // Evitar que suene una alarma vieja al cargar
-                const ahora = Date.now();
-                if(ahora - data.timestamp > 10000) return; // Si el evento tiene más de 10 seg, ignorar.
-
-                const audio = document.getElementById('sonidoSirena');
-                document.getElementById('cuerpo').classList.add('alarm-on');
-                audio.play();
-                Swal.fire({ 
-                    title: data.tipo, 
-                    text: data.info, 
-                    icon: "warning", 
-                    background: '#0F091A', 
-                    color: '#fff', 
-                    confirmButtonColor: '#E91E63' 
-                }).then(() => {
-                    audio.pause(); 
-                    document.getElementById('cuerpo').classList.remove('alarm-on');
-                });
-            });
-        }
+        function tocarTimbreSolo() { db.ref('alarma_evento').set({ id: Math.random(), tipo: "TIMBRE", info: "Atención cliente", timestamp: Date.now() }); Swal.fire({ title: "NOTIFICANDO", icon: "success", timer: 1000, showConfirmButton: false, background: '#0F091A', color: '#fff' }); }
+        function activarMonitorAlarma() { db.ref('alarma_evento').on('value', snap => { const data = snap.val(); if(!data) return; const ahora = Date.now(); if(ahora - data.timestamp > 10000) return; const audio = document.getElementById('sonidoSirena'); document.getElementById('cuerpo').classList.add('alarm-on'); audio.play(); Swal.fire({ title: data.tipo, text: data.info, icon: "warning", background: '#0F091A', color: '#fff', confirmButtonColor: '#E91E63' }).then(() => { audio.pause(); document.getElementById('cuerpo').classList.remove('alarm-on'); }); }); }
     </script>
 </body>
 </html>
