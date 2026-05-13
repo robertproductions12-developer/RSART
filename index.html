@@ -81,6 +81,11 @@
         @media (min-width: 768px) { .card-service { border-radius: 30px; } }
         .card-service:hover { border-color: var(--lime); transform: translateY(-5px); }
         
+        .section-header {
+            background: linear-gradient(135deg, rgba(198,255,0,0.1), rgba(233,30,99,0.1));
+            border: 1px solid rgba(198,255,0,0.2);
+        }
+        
         .btn-magenta { background: var(--magenta); transition: 0.4s; box-shadow: 0 8px 15px rgba(233, 30, 99, 0.2); }
         .btn-magenta:hover { filter: brightness(1.1); transform: translateY(-2px); }
 
@@ -89,6 +94,14 @@
         .status-rojo { border-left: 6px solid #ff4444 !important; background: rgba(255, 68, 68, 0.05); }
         .status-amarillo { border-left: 6px solid #ffbb33 !important; background: rgba(255, 187, 51, 0.05); }
         .status-verde { border-left: 6px solid #00c851 !important; background: rgba(0, 200, 81, 0.05); }
+
+        .social-icon {
+            transition: all 0.3s ease;
+        }
+        .social-icon:hover {
+            transform: translateY(-5px);
+            filter: drop-shadow(0 0 15px currentColor);
+        }
 
         @media print { .no-print { display: none !important; } }
     </style>
@@ -135,8 +148,24 @@
             <h2 class="text-2xl md:text-4xl font-black italic">CATÁLOGO <span class="text-[var(--magenta)]">RS</span></h2>
             <div id="status-fb" class="text-[8px] md:text-[10px] font-bold px-3 py-1 md:px-4 md:py-2 bg-white/5 rounded-full text-gray-500 border border-white/10">CONECTANDO...</div>
         </div>
-        <div id="lista-productos" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-10 fade-in-up" style="animation-delay: 0.4s;"></div>
+        <div id="lista-contenido" class="space-y-12 fade-in-up" style="animation-delay: 0.4s;"></div>
     </main>
+
+    <!-- Redes Sociales -->
+    <footer class="container mx-auto p-6 md:p-10 border-t border-white/10 mt-12">
+        <div class="flex flex-col items-center gap-6">
+            <h3 class="text-2xl md:text-3xl font-black italic text-[var(--lime)]">SÍGUENOS</h3>
+            <div class="flex gap-8 md:gap-12">
+                <a href="https://www.instagram.com/tuusuario" target="_blank" class="social-icon text-4xl md:text-5xl text-pink-500 hover:text-pink-400 transition-all">
+                    <i class="fab fa-instagram"></i>
+                </a>
+                <a href="https://wa.me/584123456789" target="_blank" class="social-icon text-4xl md:text-5xl text-green-500 hover:text-green-400 transition-all">
+                    <i class="fab fa-whatsapp"></i>
+                </a>
+            </div>
+            <p class="text-gray-600 text-xs md:text-sm text-center">© 2024 RS ART STUDIO - Todos los derechos reservados</p>
+        </div>
+    </footer>
 
     <div id="panelAdmin" class="hidden fixed inset-0 z-[1000] admin-modal overflow-y-auto p-4 md:p-8">
         <div class="container mx-auto">
@@ -149,6 +178,7 @@
             </div>
 
             <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 md:gap-12">
+                <!-- Configuración General -->
                 <div class="space-y-6 md:space-y-8">
                     <div class="bg-white/5 p-6 md:p-8 rounded-[30px] md:rounded-[40px] border border-white/10">
                         <h3 class="text-xl md:text-2xl mb-4 md:mb-6 font-bold text-[var(--lime)] uppercase italic text-center">Configuración</h3>
@@ -156,7 +186,11 @@
                             <input type="text" id="conf-exito-msg" placeholder="Mensaje de Éxito" class="w-full bg-black/40 p-4 rounded-xl border border-white/10 text-xs">
                             <input type="file" onchange="convertirBase64(this, 'exito-img')" class="text-[10px] text-gray-500">
                             <input type="hidden" id="adm-exito-img">
-                            <button onclick="guardarConfigExito()" class="w-full bg-[var(--lime)] text-black font-black py-3 md:py-4 rounded-xl shadow-lg text-xs uppercase">Actualizar Pantalla</button>
+                            <div class="border-t border-white/10 pt-4 mt-2">
+                                <label class="text-[var(--lime)] text-xs font-bold uppercase block mb-2">TASA DE CAMBIO (USD → Bs)</label>
+                                <input type="number" id="conf-tasa" step="0.01" placeholder="Tasa del día" class="w-full bg-black/40 p-4 rounded-xl border border-white/10 text-xs">
+                            </div>
+                            <button onclick="guardarConfigExito()" class="w-full bg-[var(--lime)] text-black font-black py-3 md:py-4 rounded-xl shadow-lg text-xs uppercase">Actualizar Todo</button>
                         </div>
                     </div>
                     <div class="bg-white/5 p-6 md:p-8 rounded-[30px] md:rounded-[40px] border border-white/10">
@@ -169,21 +203,35 @@
                     </div>
                 </div>
 
+                <!-- Secciones (nuevo) -->
                 <div class="bg-white/5 p-6 md:p-8 rounded-[30px] md:rounded-[40px] border border-white/10">
-                    <h3 class="text-xl md:text-2xl mb-6 font-bold flex items-center gap-2 uppercase italic text-[var(--lime)]">Stock Real</h3>
-                    <div id="inventario-lista" class="space-y-3"></div>
+                    <h3 class="text-xl md:text-2xl mb-6 font-bold flex items-center gap-2 uppercase italic text-[var(--lime)]">SECCIONES</h3>
+                    <div id="lista-secciones" class="space-y-3 mb-6"></div>
                     <hr class="my-6 border-white/10">
                     <div class="space-y-4">
-                        <input type="text" id="adm-nombre" placeholder="Nombre Producto" class="w-full bg-black/40 p-4 rounded-xl border border-white/10 text-xs">
-                        <input type="number" id="adm-precio" placeholder="Precio" class="w-full bg-black/40 p-4 rounded-xl border border-white/10 text-xs">
-                        <input type="number" id="adm-stock" placeholder="Cantidad Disponible (Stock)" class="w-full bg-black/40 p-4 rounded-xl border border-white/10 text-xs">
-                        <input type="file" onchange="convertirBase64(this, 'img1')" class="text-[10px]">
-                        <input type="hidden" id="adm-img1">
-                        <button onclick="guardarProducto()" class="w-full bg-[var(--magenta)] font-black py-3 md:py-4 rounded-xl text-xs uppercase">Añadir al Stock</button>
+                        <input type="text" id="adm-sec-titulo" placeholder="Título de la Sección" class="w-full bg-black/40 p-4 rounded-xl border border-white/10 text-xs">
+                        <button onclick="guardarSeccion()" class="w-full bg-[var(--magenta)] font-black py-3 md:py-4 rounded-xl text-xs uppercase">Agregar Sección</button>
                     </div>
                 </div>
 
+                <!-- Productos -->
                 <div class="bg-white/5 p-6 md:p-8 rounded-[30px] md:rounded-[40px] border border-white/10">
+                    <h3 class="text-xl md:text-2xl mb-6 font-bold flex items-center gap-2 uppercase italic text-[var(--lime)]">Stock Real</h3>
+                    <div id="inventario-lista" class="space-y-3 max-h-60 overflow-y-auto"></div>
+                    <hr class="my-6 border-white/10">
+                    <div class="space-y-4">
+                        <select id="adm-seccion-select" class="w-full bg-black/40 p-4 rounded-xl border border-white/10 text-xs"></select>
+                        <input type="text" id="adm-nombre" placeholder="Nombre Producto" class="w-full bg-black/40 p-4 rounded-xl border border-white/10 text-xs">
+                        <input type="number" id="adm-precio" placeholder="Precio (USD)" class="w-full bg-black/40 p-4 rounded-xl border border-white/10 text-xs">
+                        <input type="number" id="adm-stock" placeholder="Cantidad Disponible (Stock)" class="w-full bg-black/40 p-4 rounded-xl border border-white/10 text-xs">
+                        <input type="file" onchange="convertirBase64(this, 'img1')" class="text-[10px]">
+                        <input type="hidden" id="adm-img1">
+                        <button onclick="guardarProducto()" class="w-full bg-[var(--magenta)] font-black py-3 md:py-4 rounded-xl text-xs uppercase">Añadir Producto</button>
+                    </div>
+                </div>
+
+                <!-- Pedidos -->
+                <div class="bg-white/5 p-6 md:p-8 rounded-[30px] md:rounded-[40px] border border-white/10 col-span-1 xl:col-span-3">
                     <div class="flex justify-between items-center mb-6">
                         <h3 class="text-xl md:text-2xl font-bold uppercase italic">Pedidos</h3>
                         <div class="flex gap-2">
@@ -191,7 +239,7 @@
                             <button onclick="borrarPedidos()" class="w-10 h-10 bg-red-600 rounded-lg flex items-center justify-center"><i class="fas fa-trash-alt"></i></button>
                         </div>
                     </div>
-                    <div id="lista-pedidos" class="space-y-4"></div>
+                    <div id="lista-pedidos" class="space-y-4 max-h-96 overflow-y-auto"></div>
                 </div>
             </div>
         </div>
@@ -206,20 +254,43 @@
 
         let carrito = [];
         let productosData = [];
+        let seccionesData = [];
         let configPagos = { movil: '', banco: '' };
-        let configExito = { mensaje: '¡GRACIAS POR ELEGIR RS ART!', imagen: '' };
+        let configExito = { mensaje: '¡GRACIAS POR ELEGIR RS ART!', imagen: '', tasa: 36 };
+        
+        // Tasa de cambio (por defecto 36 Bs/USD si no hay configurada)
+        let tasaCambio = 36;
 
         new Swiper(".mySwiper", { loop: true, pagination: { el: ".swiper-pagination" }, autoplay: { delay: 4000 } });
 
+        // Cargar configuraciones
         db.ref('configuracion').on('value', snap => {
             const data = snap.val();
             if(data) {
                 if(data.pagos) configPagos = data.pagos;
-                if(data.exito) configExito = data.exito;
+                if(data.exito) {
+                    configExito = data.exito;
+                    tasaCambio = data.exito.tasa || 36;
+                }
                 document.getElementById('conf-pago-movil').value = configPagos.movil;
                 document.getElementById('conf-transferencia').value = configPagos.banco;
                 document.getElementById('conf-exito-msg').value = configExito.mensaje;
+                document.getElementById('conf-tasa').value = tasaCambio;
             }
+        });
+
+        // Cargar secciones
+        db.ref('secciones').on('value', snap => {
+            seccionesData = [];
+            const select = document.getElementById('adm-seccion-select');
+            select.innerHTML = '<option value="">Seleccionar Sección</option>';
+            snap.forEach(child => {
+                const sec = child.val();
+                sec.key = child.key;
+                seccionesData.push(sec);
+                select.innerHTML += `<option value="${sec.key}">${sec.titulo}</option>`;
+            });
+            renderizarTodo();
         });
 
         function guardarConfigPagos() {
@@ -231,9 +302,13 @@
         }
 
         function guardarConfigExito() {
+            const nuevaTasa = parseFloat(document.getElementById('conf-tasa').value);
+            if(nuevaTasa && nuevaTasa > 0) tasaCambio = nuevaTasa;
+            
             db.ref('configuracion/exito').set({
                 mensaje: document.getElementById('conf-exito-msg').value,
-                imagen: document.getElementById('adm-exito-img').value
+                imagen: document.getElementById('adm-exito-img').value,
+                tasa: tasaCambio
             });
             Swal.fire("Éxito", "Configuración guardada", "success");
         }
@@ -250,47 +325,95 @@
             if (input.files[0]) reader.readAsDataURL(input.files[0]);
         }
 
-        db.ref('productos').on('value', snap => {
-            const container = document.getElementById('lista-productos');
-            const inventario = document.getElementById('inventario-lista');
-            container.innerHTML = ""; inventario.innerHTML = ""; productosData = [];
+        function guardarSeccion() {
+            const titulo = document.getElementById('adm-sec-titulo').value;
+            if(!titulo) return Swal.fire("Incompleto", "Escribe un título para la sección", "warning");
             
+            db.ref('secciones').push({ titulo: titulo });
+            document.getElementById('adm-sec-titulo').value = "";
+            Swal.fire("Éxito", "Sección agregada", "success");
+        }
+
+        db.ref('productos').on('value', snap => {
+            productosData = [];
             snap.forEach(child => {
-                const p = child.val(); p.key = child.key;
+                const p = child.val();
+                p.key = child.key;
                 productosData.push(p);
+            });
+            renderizarTodo();
+        });
+
+        function renderizarTodo() {
+            const container = document.getElementById('lista-contenido');
+            const inventario = document.getElementById('inventario-lista');
+            container.innerHTML = "";
+            inventario.innerHTML = "";
+            
+            // Renderizar inventario
+            productosData.forEach(p => {
                 const stockVal = p.stock || 0;
-                const isAgotado = stockVal <= 0;
-
-                container.innerHTML += `
-                    <div class="card-service">
-                        <div class="h-48 md:h-64 overflow-hidden relative">
-                            <img src="${p.img1}" class="w-full h-full object-cover transform hover:scale-110 transition duration-700">
-                            ${isAgotado ? '<div class="absolute inset-0 bg-black/70 flex items-center justify-center font-black text-red-500 italic">AGOTADO</div>' : ''}
-                        </div>
-                        <div class="p-5 md:p-8">
-                            <h3 class="text-lg md:text-2xl font-black italic uppercase tracking-tighter truncate">${p.nombre}</h3>
-                            <p class="text-[10px] text-gray-500 font-bold uppercase mb-2">Disponibles: <span class="${stockVal < 5 ? 'text-red-500' : 'text-white'}">${stockVal}</span></p>
-                            <div class="flex justify-between items-center mt-4">
-                                <p class="text-xl md:text-3xl font-black text-[var(--lime)] tracking-tighter">Bs. ${parseFloat(p.precio).toLocaleString('de-DE')}</p>
-                                <button onclick="${isAgotado ? '' : `alCarrito('${p.key}')`}" 
-                                        class="${isAgotado ? 'bg-gray-700 cursor-not-allowed' : 'btn-magenta'} px-5 py-3 md:px-8 md:py-4 rounded-xl md:rounded-2xl text-[10px] font-black italic uppercase tracking-widest transition-all">
-                                    ${isAgotado ? 'SIN STOCK' : 'Añadir'}
-                                </button>
-                            </div>
-                        </div>
-                    </div>`;
-
                 inventario.innerHTML += `
                     <div class="flex items-center gap-3 bg-white/5 p-3 rounded-xl border border-white/5">
                         <img src="${p.img1}" class="w-10 h-10 rounded-lg object-cover">
                         <div class="flex-1 text-[10px] font-bold uppercase truncate">
                             ${p.nombre}<br>
-                            <span class="text-[var(--lime)]">Cant: ${stockVal}</span>
+                            <span class="text-[var(--lime)]">Cant: ${stockVal}</span><br>
+                            <span class="text-gray-400">$${parseFloat(p.precio).toLocaleString('de-DE')}</span>
                         </div>
                         <button onclick="eliminarProducto('${p.key}')" class="text-red-500 text-sm"><i class="fas fa-trash"></i></button>
                     </div>`;
             });
-        });
+            
+            // Renderizar catálogo por secciones
+            if(seccionesData.length === 0) {
+                container.innerHTML = '<div class="text-center text-gray-500 py-10">Agrega secciones en el panel de administrador</div>';
+                return;
+            }
+            
+            seccionesData.forEach(seccion => {
+                const productosSeccion = productosData.filter(p => p.seccionId === seccion.key);
+                
+                let productosHTML = '';
+                productosSeccion.forEach(p => {
+                    const stockVal = p.stock || 0;
+                    const isAgotado = stockVal <= 0;
+                    
+                    productosHTML += `
+                        <div class="card-service">
+                            <div class="h-48 md:h-64 overflow-hidden relative">
+                                <img src="${p.img1}" class="w-full h-full object-cover transform hover:scale-110 transition duration-700">
+                                ${isAgotado ? '<div class="absolute inset-0 bg-black/70 flex items-center justify-center font-black text-red-500 italic">AGOTADO</div>' : ''}
+                            </div>
+                            <div class="p-5 md:p-8">
+                                <h3 class="text-lg md:text-2xl font-black italic uppercase tracking-tighter truncate">${p.nombre}</h3>
+                                <p class="text-[10px] text-gray-500 font-bold uppercase mb-2">Disponibles: <span class="${stockVal < 5 ? 'text-red-500' : 'text-white'}">${stockVal}</span></p>
+                                <div class="flex justify-between items-center mt-4">
+                                    <div>
+                                        <p class="text-sm text-gray-400 line-through">Bs. ${(parseFloat(p.precio) * tasaCambio).toLocaleString('de-DE')}</p>
+                                        <p class="text-xl md:text-3xl font-black text-[var(--lime)] tracking-tighter">$${parseFloat(p.precio).toLocaleString('de-DE')} USD</p>
+                                    </div>
+                                    <button onclick="${isAgotado ? '' : `alCarrito('${p.key}')`}" 
+                                            class="${isAgotado ? 'bg-gray-700 cursor-not-allowed' : 'btn-magenta'} px-5 py-3 md:px-8 md:py-4 rounded-xl md:rounded-2xl text-[10px] font-black italic uppercase tracking-widest transition-all">
+                                        ${isAgotado ? 'SIN STOCK' : 'Añadir'}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>`;
+                });
+                
+                if(productosSeccion.length > 0) {
+                    container.innerHTML += `
+                        <div class="section-header rounded-3xl p-6 md:p-8 mb-6">
+                            <h2 class="text-3xl md:text-5xl font-black italic text-[var(--lime)] tracking-tighter">${seccion.titulo}</h2>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-10">
+                            ${productosHTML}
+                        </div>
+                    `;
+                }
+            });
+        }
 
         function alCarrito(key) {
             const prod = productosData.find(x => x.key === key);
@@ -306,7 +429,7 @@
                 carrito.push({ ...prod, cantidad: 1 });
             }
             
-            document.getElementById('cart-count').innerText = carrito.length;
+            document.getElementById('cart-count').innerText = carrito.reduce((sum, p) => sum + p.cantidad, 0);
             const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, background: '#0F091A', color: '#fff' });
             Toast.fire({ icon: 'success', title: 'Agregado al estudio' });
         }
@@ -317,7 +440,8 @@
         }
 
         async function actualizarModalCarrito() {
-            let total = carrito.reduce((s, p) => s + (parseFloat(p.precio) * p.cantidad), 0);
+            let totalUSD = carrito.reduce((s, p) => s + (parseFloat(p.precio) * p.cantidad), 0);
+            let totalBs = totalUSD * tasaCambio;
             const isMobile = window.innerWidth < 768;
 
             const { value: formValues } = await Swal.fire({
@@ -336,7 +460,7 @@
                         <div class="flex items-center justify-between bg-white/5 p-3 md:p-4 rounded-xl md:rounded-2xl border border-white/5">
                             <div class="flex-1">
                                 <h4 class="font-black text-[10px] md:text-xs uppercase truncate">${p.nombre}</h4>
-                                <p class="text-[var(--lime)] font-bold text-[10px]">Bs. ${parseFloat(p.precio).toLocaleString('de-DE')}</p>
+                                <p class="text-[var(--lime)] font-bold text-[10px]">$${parseFloat(p.precio).toLocaleString('de-DE')} USD</p>
                             </div>
                             <div class="flex items-center gap-3 md:gap-5 ml-2">
                                 <button onclick="cambiarCant(${i},-1)" class="w-7 h-7 md:w-9 md:h-9 bg-white/10 rounded-lg md:rounded-xl hover:bg-[var(--magenta)] transition">-</button>
@@ -348,7 +472,10 @@
 
                     <div class="flex justify-between items-center bg-white/5 p-4 md:p-6 rounded-2xl md:rounded-3xl border border-white/10 mb-6 md:mb-10">
                         <span class="font-black text-xs md:text-lg italic uppercase">Total</span>
-                        <span class="text-2xl md:text-4xl font-black text-[var(--lime)] tracking-tighter">Bs. ${total.toLocaleString('de-DE')}</span>
+                        <div class="text-right">
+                            <p class="text-sm text-gray-400">$${totalUSD.toLocaleString('de-DE')} USD</p>
+                            <p class="text-2xl md:text-4xl font-black text-[var(--lime)] tracking-tighter">Bs. ${totalBs.toLocaleString('de-DE')}</p>
+                        </div>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
@@ -362,6 +489,7 @@
                             <div id="info-pago-box" class="p-4 bg-[var(--lime)]/10 rounded-xl text-[9px] md:text-[11px] hidden border border-[var(--lime)]/20 text-[var(--lime)] font-bold italic"></div>
                             <input type="text" id="swal-tel" placeholder="Celular Origen" class="premium-input w-full p-3 md:p-4 outline-none">
                             <input type="text" id="swal-ref" placeholder="Referencia" class="premium-input w-full p-3 md:p-4 outline-none">
+                            <input type="text" id="swal-nombre" placeholder="Tu Nombre" class="premium-input w-full p-3 md:p-4 outline-none">
                         </div>
 
                         <div class="space-y-3 md:space-y-5">
@@ -394,13 +522,14 @@
                     const m = document.getElementById('swal-metodo').value;
                     const t = document.getElementById('swal-tel').value;
                     const r = document.getElementById('swal-ref').value;
+                    const n = document.getElementById('swal-nombre').value;
                     const s = document.getElementById('swal-status').value;
-                    if(!m || !t || !r) { Swal.showValidationMessage('Faltan datos de pago'); return false; }
-                    return { metodo: m, tel: t, ref: r, status: s, obs: document.getElementById('swal-obs').value };
+                    if(!m || !t || !r || !n) { Swal.showValidationMessage('Faltan datos de pago o nombre'); return false; }
+                    return { metodo: m, tel: t, ref: r, status: s, obs: document.getElementById('swal-obs').value, nombre: n, totalUSD: totalUSD, totalBs: totalBs };
                 }
             });
 
-            if (formValues) enviarPedido(formValues, total);
+            if (formValues) enviarPedido(formValues);
         }
 
         window.selectStatus = (val) => {
@@ -419,7 +548,7 @@
             
             item.cantidad += d;
             if (item.cantidad < 1) carrito.splice(i, 1);
-            document.getElementById('cart-count').innerText = carrito.length;
+            document.getElementById('cart-count').innerText = carrito.reduce((sum, p) => sum + p.cantidad, 0);
             actualizarModalCarrito();
         };
 
@@ -430,10 +559,19 @@
             else if(v === 'Transferencia') box.innerHTML = `BANCO:<br>${configPagos.banco}`;
         }
 
-        async function enviarPedido(d, t) {
+        async function enviarPedido(d) {
             const pedido = {
-                items: carrito, total: t, metodo: d.metodo, tel: d.tel, ref: d.ref, obs: d.obs,
-                fecha: new Date().toLocaleString(), status: d.status
+                items: carrito.map(i => ({ nombre: i.nombre, cantidad: i.cantidad, precioUSD: i.precio })),
+                totalUSD: d.totalUSD,
+                totalBs: d.totalBs,
+                metodo: d.metodo,
+                tel: d.tel,
+                ref: d.ref,
+                nombre: d.nombre,
+                obs: d.obs,
+                fecha: new Date().toLocaleString(),
+                status: d.status,
+                tasa: tasaCambio
             };
 
             // 1. Guardar el pedido
@@ -447,12 +585,37 @@
                 });
             }
 
-            db.ref('alarma_evento').set({ id: Math.random(), tipo: "COMPRA", info: `Bs. ${t}`, timestamp: Date.now() });
+            // 3. Enviar mensaje automático por WhatsApp con la factura
+            const facturaTexto = `📋 *FACTURA RS ART STUDIO*\n\n` +
+                `👤 *Cliente:* ${d.nombre}\n` +
+                `📅 *Fecha:* ${new Date().toLocaleString()}\n` +
+                `━━━━━━━━━━━━━━━━━━━━\n` +
+                `*DETALLE DEL PEDIDO:*\n` +
+                carrito.map(i => `   ${i.nombre} x${i.cantidad} = $${(i.precio * i.cantidad).toLocaleString('de-DE')} USD`).join('\n') +
+                `\n━━━━━━━━━━━━━━━━━━━━\n` +
+                `💰 *TOTAL:* $${d.totalUSD.toLocaleString('de-DE')} USD (Bs. ${d.totalBs.toLocaleString('de-DE')})\n` +
+                `💵 *Tasa cambio:* Bs. ${tasaCambio}/USD\n` +
+                `━━━━━━━━━━━━━━━━━━━━\n` +
+                `💳 *Método de pago:* ${d.metodo}\n` +
+                `📞 *Teléfono origen:* ${d.tel}\n` +
+                `🔑 *Referencia:* ${d.ref}\n` +
+                `🚚 *Tipo de entrega:* ${d.status === 'rojo' ? 'URGENTE' : d.status === 'amarillo' ? 'MEDIANO' : 'LARGO'}\n` +
+                `${d.obs ? `📝 *Observaciones:* ${d.obs}\n` : ''}` +
+                `━━━━━━━━━━━━━━━━━━━━\n` +
+                `✨ *¡Gracias por tu compra!* ✨\n` +
+                `🔔 *RS ART STUDIO*`;
+
+            const numeroWhatsApp = "584123456789"; // Cambia este número por el tuyo
+            const mensajeCodificado = encodeURIComponent(facturaTexto);
+            window.open(`https://wa.me/${numeroWhatsApp}?text=${mensajeCodificado}`, '_blank');
+
+            db.ref('alarma_evento').set({ id: Math.random(), tipo: "COMPRA", info: `$${d.totalUSD} USD (${d.nombre})`, timestamp: Date.now() });
             carrito = [];
             document.getElementById('cart-count').innerText = "0";
 
             Swal.fire({
                 title: `<span class="text-xl md:text-3xl font-black italic tracking-tighter uppercase">${configExito.mensaje}</span>`,
+                html: `<p class="text-sm mt-2">Se ha enviado la factura a tu WhatsApp</p>`,
                 imageUrl: configExito.imagen || 'https://via.placeholder.com/400x300?text=EXITO',
                 imageWidth: 300,
                 background: '#0F091A',
@@ -467,7 +630,7 @@
             if(prompt("Clave:") === "2025") {
                 document.getElementById('panelAdmin').classList.remove('hidden');
                 escucharPedidos();
-                activarMonitorAlarma(); // <--- LA ALARMA SOLO SE ACTIVA AQUÍ
+                activarMonitorAlarma();
             }
         }
 
@@ -486,10 +649,14 @@
                     list.innerHTML += `
                         <div class="bg-black/60 p-4 md:p-6 rounded-2xl md:rounded-3xl status-${ped.status} animate__animated animate__fadeInRight">
                             <div class="flex justify-between items-start mb-2 md:mb-4">
-                                <span class="font-black text-[var(--lime)] text-sm md:text-xl italic">Bs. ${ped.total.toLocaleString('de-DE')}</span>
+                                <div>
+                                    <span class="font-black text-[var(--lime)] text-sm md:text-xl italic">$${ped.totalUSD.toLocaleString('de-DE')} USD</span>
+                                    <span class="text-xs text-gray-400 ml-2">(Bs. ${ped.totalBs.toLocaleString('de-DE')})</span>
+                                </div>
                                 <button onclick="borrarPedidoIndividual('${ped.key}')" class="w-8 h-8 md:w-10 md:h-10 bg-white/5 rounded-lg text-green-500 hover:bg-green-500 hover:text-white transition-all flex items-center justify-center text-xs"><i class="fas fa-check"></i></button>
                             </div>
                             <div class="space-y-1 text-[10px] md:text-xs">
+                                <p><b class="text-gray-500 uppercase">Cliente:</b> ${ped.nombre || 'Anónimo'}</p>
                                 <p><b class="text-gray-500 uppercase">Items:</b> ${ped.items.map(i => i.nombre + ' (x'+i.cantidad+')').join(', ')}</p>
                                 <p><b class="text-gray-500 uppercase">Pago:</b> ${ped.metodo} | ${ped.tel}</p>
                                 <p><b class="text-gray-500 uppercase">Ref:</b> <span class="text-white">${ped.ref}</span></p>
@@ -512,32 +679,32 @@
             const p = document.getElementById('adm-precio').value;
             const s = document.getElementById('adm-stock').value;
             const i = document.getElementById('adm-img1').value;
-            if(!n || !p || !s || !i) return Swal.fire("Incompleto", "Llena todos los campos incluyendo el stock", "warning");
+            const sec = document.getElementById('adm-seccion-select').value;
+            if(!n || !p || !s || !i) return Swal.fire("Incompleto", "Llena todos los campos incluyendo el stock y la imagen", "warning");
+            if(!sec) return Swal.fire("Incompleto", "Selecciona una sección", "warning");
             
-            db.ref('productos').push({ nombre: n, precio: p, stock: parseInt(s), img1: i });
+            db.ref('productos').push({ nombre: n, precio: parseFloat(p), stock: parseInt(s), img1: i, seccionId: sec });
             Swal.fire("Éxito", "Producto añadido con stock", "success");
             document.getElementById('adm-nombre').value = "";
             document.getElementById('adm-precio').value = "";
             document.getElementById('adm-stock').value = "";
         }
 
-        function eliminarProducto(k) { if(confirm("¿Eliminar?")) db.ref('productos/' + k).remove(); }
-        function borrarPedidos() { if(confirm("¿Vaciar todo?")) db.ref('pedidos').remove(); }
+        function eliminarProducto(k) { if(confirm("¿Eliminar este producto?")) db.ref('productos/' + k).remove(); }
+        function borrarPedidos() { if(confirm("¿Vaciar todos los pedidos?")) db.ref('pedidos').remove(); }
         
         function tocarTimbreSolo() {
             db.ref('alarma_evento').set({ id: Math.random(), tipo: "TIMBRE", info: "Atención cliente", timestamp: Date.now() });
             Swal.fire({ title: "NOTIFICANDO", icon: "success", timer: 1000, showConfirmButton: false, background: '#0F091A', color: '#fff' });
         }
 
-        // NUEVA FUNCIÓN: Solo se ejecuta para el administrador
         function activarMonitorAlarma() {
             db.ref('alarma_evento').on('value', snap => {
                 const data = snap.val(); 
                 if(!data) return;
                 
-                // Evitar que suene una alarma vieja al cargar
                 const ahora = Date.now();
-                if(ahora - data.timestamp > 10000) return; // Si el evento tiene más de 10 seg, ignorar.
+                if(ahora - data.timestamp > 10000) return;
 
                 const audio = document.getElementById('sonidoSirena');
                 document.getElementById('cuerpo').classList.add('alarm-on');
@@ -558,4 +725,3 @@
     </script>
 </body>
 </html>
-
