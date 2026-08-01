@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RS ART</title>
+    <title>RS ART STUDIO</title>
     
-    <!-- ICONO DE LA WEB (FAVICON) -->
     <link rel="icon" href="tu-icono.png" type="image/x-icon">
     
     <!-- Librerías -->
@@ -13,18 +12,387 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
-    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
+    <!-- SheetJS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
     <style>
-        :root { --purple: #2D1B4E; --lime: #C6FF00; --magenta: #E91E63; --dark: #0F091A; }
-        body { background: var(--dark); color: white; font-family: 'Inter', sans-serif; scroll-behavior: smooth; overflow-x: hidden; }
+        :root { 
+            --purple: #2D1B4E; 
+            --lime: #C6FF00; 
+            --magenta: #E91E63; 
+            --dark: #0F091A; 
+        }
         
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { 
+            background: var(--dark); 
+            color: white; 
+            font-family: 'Inter', sans-serif; 
+            scroll-behavior: smooth; 
+            overflow-x: hidden;
+            position: relative;
+            min-height: 100vh;
+        }
+        
+        #fondo-3d {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.8;
+        }
+        
+        .contenido-principal {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .menu-nav {
+            background: rgba(15, 9, 26, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 2px solid rgba(198, 255, 0, 0.2);
+            padding: 10px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            transition: all 0.3s ease;
+        }
+        
+        .menu-nav.scrolled {
+            background: rgba(15, 9, 26, 0.99);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+        
+        .menu-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 1200px;
+            margin: 0 auto;
+            flex-wrap: nowrap;
+            gap: 10px;
+        }
+        
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            flex-shrink: 0;
+        }
+        
+        .logo-animado {
+            position: relative;
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--lime), var(--magenta));
+            border-radius: 12px;
+            font-weight: 900;
+            font-size: 18px;
+            color: #0F091A;
+            animation: logoGlow 3s ease-in-out infinite, logoFloat 4s ease-in-out infinite;
+            box-shadow: 0 0 30px rgba(198, 255, 0, 0.2);
+            transition: transform 0.3s;
+            flex-shrink: 0;
+        }
+        
+        .logo-animado::before {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: 15px;
+            background: linear-gradient(135deg, var(--lime), var(--magenta), var(--lime));
+            background-size: 300% 300%;
+            animation: logoBorder 4s ease-in-out infinite;
+            z-index: -1;
+            filter: blur(8px);
+            opacity: 0.6;
+        }
+        
+        .logo-animado:hover {
+            transform: scale(1.1) rotate(-5deg);
+        }
+        
+        .logo-texto {
+            font-size: 20px;
+            font-weight: 900;
+            letter-spacing: -1px;
+            color: #FFFFFF;
+            white-space: nowrap;
+        }
+        
+        .logo-texto span {
+            color: var(--lime);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            display: inline-block;
+            animation: pulseText 2s ease-in-out infinite;
+        }
+        
+        @keyframes logoGlow {
+            0%, 100% { box-shadow: 0 0 30px rgba(198, 255, 0, 0.2); }
+            50% { box-shadow: 0 0 60px rgba(198, 255, 0, 0.5), 0 0 100px rgba(233, 30, 99, 0.3); }
+        }
+        
+        @keyframes logoFloat {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-6px) rotate(2deg); }
+        }
+        
+        @keyframes logoBorder {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        @keyframes pulseText {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(0.95); }
+        }
+        
+        .menu-items {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            flex-wrap: nowrap;
+        }
+        
+        .menu-item {
+            position: relative;
+            padding: 8px 14px;
+            font-weight: 700;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            color: rgba(255,255,255,0.6);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            white-space: nowrap;
+        }
+        
+        .menu-item::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background: var(--lime);
+            transition: all 0.4s ease;
+            transform: translateX(-50%);
+            border-radius: 2px;
+        }
+        
+        .menu-item:hover {
+            color: var(--lime);
+            transform: translateY(-2px);
+        }
+        
+        .menu-item:hover::after {
+            width: 60%;
+        }
+        
+        .menu-item.active {
+            color: var(--lime);
+        }
+        
+        .menu-item.active::after {
+            width: 50%;
+        }
+        
+        .menu-item i {
+            margin-right: 5px;
+            font-size: 13px;
+        }
+        
+        .btn-admin {
+            background: rgba(198, 255, 0, 0.1);
+            border: 1px solid rgba(198, 255, 0, 0.2);
+            color: var(--lime);
+            padding: 6px 12px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        
+        .btn-admin:hover {
+            background: rgba(198, 255, 0, 0.2);
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(198, 255, 0, 0.2);
+        }
+        
+        .btn-admin i {
+            font-size: 14px;
+        }
+        
+        .timbre-flotante {
+            position: fixed;
+            z-index: 999;
+            cursor: grab;
+            touch-action: none;
+            user-select: none;
+            background: linear-gradient(135deg, #E91E63, #2D1B4E);
+            border: 2px solid #C6FF00;
+            border-radius: 50%;
+            width: 65px;
+            height: 65px;
+            box-shadow: 0 0 40px rgba(198, 255, 0, 0.3);
+            transition: transform 0.2s, box-shadow 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            color: white;
+            font-weight: 900;
+            font-size: 9px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            gap: 0px;
+        }
+        
+        .timbre-flotante:active {
+            cursor: grabbing;
+            transform: scale(0.92);
+        }
+        
+        .timbre-flotante i {
+            font-size: 24px;
+            animation: bell-ring 2s infinite;
+        }
+        
+        .timbre-flotante .label {
+            font-size: 7px;
+            margin-top: 1px;
+            opacity: 0.9;
+        }
+        
+        @keyframes bell-ring {
+            0% { transform: rotate(0deg); }
+            25% { transform: rotate(15deg); }
+            75% { transform: rotate(-15deg); }
+            100% { transform: rotate(0deg); }
+        }
+        
+        .timbre-flotante:hover {
+            transform: scale(1.08);
+            box-shadow: 0 0 60px rgba(198, 255, 0, 0.6), 0 0 120px rgba(233, 30, 99, 0.3);
+        }
+        
+        .menu-hamburger {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 5px;
+            flex-shrink: 0;
+        }
+        
+        @media (max-width: 768px) {
+            .menu-hamburger {
+                display: block;
+            }
+            .menu-items {
+                display: none;
+                flex-direction: column;
+                width: 100%;
+                padding: 15px 0;
+                gap: 5px;
+                background: rgba(15, 9, 26, 0.98);
+                position: absolute;
+                top: 100%;
+                left: 0;
+                border-bottom: 2px solid rgba(198, 255, 0, 0.1);
+            }
+            .menu-items.open {
+                display: flex;
+            }
+            .menu-item {
+                padding: 10px 20px;
+                width: 100%;
+                text-align: center;
+                border-bottom: 1px solid rgba(255,255,255,0.05);
+                font-size: 13px;
+            }
+            .btn-admin {
+                padding: 8px 16px;
+                font-size: 12px;
+                justify-content: center;
+                width: 90%;
+                margin: 5px auto;
+            }
+            .logo-texto {
+                font-size: 16px;
+            }
+            .logo-animado {
+                width: 38px;
+                height: 38px;
+                font-size: 15px;
+            }
+            .timbre-flotante {
+                width: 55px;
+                height: 55px;
+            }
+            .timbre-flotante i {
+                font-size: 20px;
+            }
+            .timbre-flotante .label {
+                font-size: 6px;
+            }
+            .menu-nav {
+                padding: 8px 15px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .menu-item {
+                font-size: 11px;
+                padding: 8px 10px;
+            }
+            .logo-texto {
+                font-size: 14px;
+            }
+            .logo-animado {
+                width: 32px;
+                height: 32px;
+                font-size: 12px;
+            }
+            .btn-admin {
+                font-size: 10px;
+                padding: 4px 10px;
+            }
+            .btn-admin i {
+                font-size: 12px;
+            }
+        }
+
         .fade-in-up { animation: fadeInUp 0.6s ease-out both; }
         @keyframes fadeInUp {
             from { opacity: 0; transform: translateY(30px); }
@@ -59,31 +427,23 @@
         .alarm-on { animation: police-flash 0.3s infinite; }
         @keyframes police-flash { 0% { background: #ff0000; } 50% { background: #0000ff; } 100% { background: #ff0000; } }
 
-        .big-bell-container {
-            background: linear-gradient(45deg, #e91e63, #2d1b4e);
-            border: 3px solid var(--lime);
-            box-shadow: 0 0 30px rgba(198, 255, 0, 0.2);
-            transition: 0.3s;
+        .card-service { 
+            background: rgba(255,255,255,0.03); 
+            backdrop-filter: blur(10px); 
+            border: 1px solid rgba(255,255,255,0.1); 
+            border-radius: 25px; 
+            transition: 0.5s; 
+            overflow: hidden; 
+            cursor: pointer; 
         }
-        @media (min-width: 768px) { .big-bell-container { border: 4px solid var(--lime); box-shadow: 0 0 40px rgba(198, 255, 0, 0.3); } }
-        
-        .bell-pulse { animation: bell-ring 2s infinite; }
-        @keyframes bell-ring {
-            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(233, 30, 99, 0.7); }
-            70% { transform: scale(1.03); box-shadow: 0 0 0 15px rgba(233, 30, 99, 0); }
-            100% { transform: scale(1); }
-        }
-
-        .swiper { width: 100%; height: 250px; border-radius: 20px; }
-        @media (min-width: 768px) { .swiper { height: 400px; border-radius: 35px; } }
-
-        .card-service { background: rgba(255,255,255,0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 25px; transition: 0.5s; overflow: hidden; cursor: pointer; }
         @media (min-width: 768px) { .card-service { border-radius: 30px; } }
         .card-service:hover { border-color: var(--lime); transform: translateY(-5px); }
         
         .section-header {
             background: linear-gradient(135deg, rgba(198,255,0,0.1), rgba(233,30,99,0.1));
             border: 1px solid rgba(198,255,0,0.2);
+            border-radius: 30px;
+            padding: 20px 30px;
         }
         
         .btn-magenta { background: var(--magenta); transition: 0.4s; box-shadow: 0 8px 15px rgba(233, 30, 99, 0.2); }
@@ -119,158 +479,1127 @@
             font-size: 12px;
         }
 
+        .seccion-menu {
+            scroll-margin-top: 80px;
+        }
+
+        .cart-count {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--magenta);
+            color: white;
+            font-size: 9px;
+            font-weight: 900;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--dark);
+        }
+
+        /* Slider */
+        .slider-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            overflow: hidden;
+            border-radius: 20px;
+            border: 2px solid rgba(198, 255, 0, 0.2);
+            box-shadow: 0 0 40px rgba(198, 255, 0, 0.1);
+            aspect-ratio: 4/3;
+            background: #0F091A;
+        }
+        
+        .slider-track {
+            display: flex;
+            transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            height: 100%;
+            width: 100%;
+        }
+        
+        .slider-slide {
+            min-width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        
+        .slider-slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .slider-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(10px);
+            color: white;
+            border: 2px solid rgba(198, 255, 0, 0.3);
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 10;
+            font-size: 18px;
+        }
+        
+        .slider-btn:hover {
+            background: rgba(198, 255, 0, 0.2);
+            border-color: var(--lime);
+            transform: translateY(-50%) scale(1.1);
+        }
+        
+        .slider-btn-prev { left: 15px; }
+        .slider-btn-next { right: 15px; }
+        
+        .slider-dots {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            z-index: 10;
+        }
+        
+        .slider-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.3);
+            border: 2px solid rgba(255,255,255,0.1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .slider-dot.active {
+            background: var(--lime);
+            border-color: var(--lime);
+            box-shadow: 0 0 20px rgba(198, 255, 0, 0.4);
+            transform: scale(1.2);
+        }
+        
+        .slider-dot:hover {
+            transform: scale(1.1);
+        }
+        
+        @media (max-width: 768px) {
+            .slider-container {
+                border-radius: 15px;
+                aspect-ratio: 4/3;
+            }
+            .slider-btn {
+                width: 35px;
+                height: 35px;
+                font-size: 14px;
+            }
+            .slider-btn-prev { left: 10px; }
+            .slider-btn-next { right: 10px; }
+            .slider-dot {
+                width: 10px;
+                height: 10px;
+            }
+        }
+
+        /* Texto animado */
+        .texto-animado {
+            animation: slideText 15s linear infinite;
+            white-space: nowrap;
+            display: inline-block;
+        }
+        @keyframes slideText {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+        .contenedor-texto-animado {
+            overflow: hidden;
+            position: relative;
+            background: rgba(198,255,0,0.05);
+            border-radius: 15px;
+            padding: 15px 0;
+            border: 1px solid rgba(198,255,0,0.1);
+        }
+
+        /* Ventas día */
+        .ventas-dia {
+            background: rgba(15,9,26,0.95);
+            border: 2px solid rgba(198,255,0,0.2);
+            border-radius: 20px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .ventas-dia .total-card {
+            background: rgba(198,255,0,0.05);
+            border: 1px solid rgba(198,255,0,0.15);
+            border-radius: 15px;
+            padding: 15px 20px;
+            text-align: center;
+        }
+        .ventas-dia .total-card .numero {
+            font-size: 28px;
+            font-weight: 900;
+            color: var(--lime);
+        }
+        .ventas-dia .total-card .label {
+            font-size: 11px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* Video */
+        .video-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            border-radius: 20px;
+            overflow: hidden;
+            border: 2px solid rgba(198, 255, 0, 0.2);
+            box-shadow: 0 0 40px rgba(198, 255, 0, 0.1);
+            aspect-ratio: 16/9;
+            background: #0F091A;
+        }
+        
+        .video-container video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .video-container .play-btn {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(198, 255, 0, 0.3);
+            border-radius: 50%;
+            width: 70px;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: white;
+            font-size: 28px;
+        }
+        
+        .video-container .play-btn:hover {
+            background: rgba(198, 255, 0, 0.2);
+            border-color: var(--lime);
+            transform: translate(-50%, -50%) scale(1.1);
+        }
+
+        @media (max-width: 768px) {
+            .video-container {
+                max-width: 100%;
+                aspect-ratio: 16/9;
+            }
+            .video-container .play-btn {
+                width: 50px;
+                height: 50px;
+                font-size: 20px;
+            }
+        }
+
         @media print { .no-print { display: none !important; } }
     </style>
 </head>
 <body id="cuerpo">
 
-    <nav class="p-4 md:p-6 border-b border-white/5 flex justify-between items-center sticky top-0 bg-[#0F091A]/90 backdrop-blur-xl z-[100]">
-        <div class="flex items-center gap-2 md:gap-3 animate__animated animate__fadeInLeft">
-            <div class="w-10 h-10 md:w-12 md:h-12 bg-[var(--lime)] rounded-xl md:rounded-2xl flex items-center justify-center text-black font-black text-lg md:text-xl shadow-lg shadow-lime-500/20">RS</div>
-            <div>
-                <h1 class="text-lg md:text-2xl font-black tracking-tighter leading-none">ART <span class="text-[var(--lime)] text-[10px]">STUDIO</span></h1>
-            </div>
-        </div>
-        <div class="flex gap-2 md:gap-4 items-center animate__animated animate__fadeInRight">
-            <button onclick="verCarrito()" class="relative p-3 md:p-4 bg-white/5 border border-white/10 rounded-xl md:rounded-2xl hover:bg-white/10 transition-all">
-                <i class="fas fa-shopping-bag text-xl md:text-2xl text-[var(--lime)]"></i>
-                <span id="cart-count" class="absolute -top-1 -right-1 bg-[var(--magenta)] text-white text-[10px] font-bold w-5 h-5 md:w-6 md:h-6 rounded-full flex items-center justify-center border-2 border-[var(--dark)] animate-bounce">0</span>
-            </button>
-            <button onclick="modoAdmin()" class="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl border border-white/10 flex items-center justify-center text-gray-500 hover:text-white transition-all"><i class="fas fa-cog"></i></button>
-        </div>
-    </nav>
+    <!-- FONDO 3D -->
+    <div id="fondo-3d"></div>
 
-    <section class="container mx-auto p-4 md:p-6">
-        <div onclick="tocarTimbreSolo()" class="big-bell-container bell-pulse rounded-[25px] md:rounded-[40px] p-6 md:p-10 flex flex-col items-center justify-center cursor-pointer group fade-in-up">
-            <i class="fas fa-bell text-5xl md:text-7xl mb-3 md:mb-4 group-hover:animate-swing text-white"></i>
-            <h2 class="text-2xl md:text-4xl font-black italic tracking-tighter">TOCAR TIMBRE</h2>
-            <p class="text-white/60 text-[10px] md:text-sm mt-1 md:mt-2 font-bold uppercase tracking-[0.2em] md:tracking-[0.3em]">Notificación Prioritaria</p>
-        </div>
-    </section>
-
-    <section class="p-4 md:p-6 container mx-auto">
-        <div class="swiper mySwiper fade-in-up" style="animation-delay: 0.2s;">
-            <div class="swiper-wrapper" id="slider-content">
-                <div class="swiper-slide"><img src="img2.png" class="w-full h-full object-cover"></div>
-                <div class="swiper-slide"><img src="RTRT.png" class="w-full h-full object-cover"></div>
-                <div class="swiper-slide"><img src="IMG.png" class="w-full h-full object-cover"></div>
-            </div>
-            <div class="swiper-pagination"></div>
-        </div>
-    </section>
-
-    <main class="container mx-auto p-4 md:p-6 pb-32 md:pb-40">
-        <div class="flex items-center justify-between mb-8 md:mb-12 fade-in-up" style="animation-delay: 0.3s;">
-            <h2 class="text-2xl md:text-4xl font-black italic">CATÁLOGO <span class="text-[var(--magenta)]">RS</span></h2>
-            <div id="status-fb" class="text-[8px] md:text-[10px] font-bold px-3 py-1 md:px-4 md:py-2 bg-white/5 rounded-full text-gray-500 border border-white/10">CONECTANDO...</div>
-        </div>
-        <div id="lista-contenido" class="space-y-12 fade-in-up" style="animation-delay: 0.4s;"></div>
-    </main>
-
-    <!-- Redes Sociales -->
-    <footer class="container mx-auto p-6 md:p-10 border-t border-white/10 mt-12">
-        <div class="flex flex-col items-center gap-6">
-            <h3 class="text-2xl md:text-3xl font-black italic text-[var(--lime)]">SÍGUENOS</h3>
-            <div class="flex gap-8 md:gap-12">
-                <a href="https://www.instagram.com/robert_paraco?igsh=MWx1NXdpZDIxdHdsMg==" target="_blank" class="social-icon text-4xl md:text-5xl text-pink-500 hover:text-pink-400 transition-all">
-                    <i class="fab fa-instagram"></i>
+    <div class="contenido-principal">
+        <!-- MENÚ -->
+        <nav class="menu-nav" id="menuNav">
+            <div class="menu-container">
+                <a href="#" class="logo-container" onclick="scrollToTop()">
+                    <div class="logo-animado">RS</div>
+                    <div class="logo-texto">ART <span>STUDIO</span></div>
                 </a>
-                <a href="https://wa.me/+584125966071" target="_blank" class="social-icon text-4xl md:text-5xl text-green-500 hover:text-green-400 transition-all">
-                    <i class="fab fa-whatsapp"></i>
-                </a>
+                
+                <button class="menu-hamburger" onclick="toggleMenu()" id="hamburgerBtn">
+                    <i class="fas fa-bars"></i>
+                </button>
+                
+                <div class="menu-items" id="menuItems">
+                    <a href="#inicio" class="menu-item active" onclick="scrollToSection('inicio')">
+                        <i class="fas fa-home"></i> Inicio
+                    </a>
+                    <a href="#quienes-somos" class="menu-item" onclick="scrollToSection('quienes-somos')">
+                        <i class="fas fa-users"></i> Quiénes Somos
+                    </a>
+                    <a href="#productos" class="menu-item" onclick="scrollToSection('productos')">
+                        <i class="fas fa-box"></i> Productos
+                    </a>
+                    <a href="#trabajos" class="menu-item" onclick="scrollToSection('trabajos')">
+                        <i class="fas fa-briefcase"></i> Trabajos
+                    </a>
+                    <a href="#contacto" class="menu-item" onclick="scrollToSection('contacto')">
+                        <i class="fas fa-envelope"></i> Contacto
+                    </a>
+                    
+                    <button onclick="modoAdmin()" class="btn-admin" title="Panel de Administración">
+                        <i class="fas fa-cog"></i> Admin
+                    </button>
+                    
+                    <button onclick="verCarrito()" class="relative btn-admin" style="background: rgba(233,30,99,0.1); border-color: rgba(233,30,99,0.3); color: var(--magenta);">
+                        <i class="fas fa-shopping-bag"></i>
+                        <span class="cart-count" id="cart-count">0</span>
+                    </button>
+                </div>
             </div>
-            <p class="text-gray-600 text-xs md:text-sm text-center">© 2026 RS ART STUDIO - Todos los derechos reservados</p>
+        </nav>
+
+        <!-- BOTÓN FLOTANTE -->
+        <div id="timbreFlotante" class="timbre-flotante" style="top: 120px; right: 20px;">
+            <i class="fas fa-bell"></i>
+            <span class="label">TU IDEA</span>
         </div>
-    </footer>
 
-    <div id="panelAdmin" class="hidden fixed inset-0 z-[1000] admin-modal overflow-y-auto p-4 md:p-8">
-        <div class="container mx-auto">
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 border-b border-white/10 pb-6 gap-4">
-                <div>
-                    <h2 class="text-3xl md:text-5xl font-black text-[var(--lime)] tracking-tighter uppercase">SISTEMA ADMIN</h2>
-                    <p class="text-gray-500 font-bold uppercase tracking-widest text-[10px] md:text-sm">Control Total de Operaciones</p>
+        <!-- INICIO -->
+        <section id="inicio" class="container mx-auto p-4 md:p-6 seccion-menu">
+            <div class="fade-in-up text-center py-8 md:py-16">
+                <h1 class="text-4xl md:text-7xl font-black italic tracking-tighter">
+                    <span class="text-[var(--lime)]">RS</span> ART
+                </h1>
+                <p class="text-gray-400 text-sm md:text-lg mt-4 max-w-2xl mx-auto">
+                    Creatividad, diseño y pasión en cada proyecto
+                </p>
+                <div class="mt-8 flex flex-wrap gap-4 justify-center">
+                    <button onclick="scrollToSection('productos')" class="btn-magenta px-8 py-4 rounded-2xl font-black uppercase text-sm tracking-widest">
+                        Ver Productos
+                    </button>
+                    <button onclick="scrollToSection('contacto')" class="bg-white/10 px-8 py-4 rounded-2xl font-black uppercase text-sm tracking-widest hover:bg-white/20 transition">
+                        Contactar
+                    </button>
                 </div>
-                <button onclick="cerrarAdmin()" class="absolute top-4 right-4 md:static bg-white/5 w-12 h-12 md:w-16 md:h-16 rounded-full text-2xl md:text-3xl hover:bg-red-500 transition-all">&times;</button>
             </div>
+            
+            <div id="contenido-inicio" class="bg-white/5 rounded-3xl p-6 md:p-12 border border-white/10 mt-8">
+                <div id="texto-inicio" class="text-gray-300 text-center text-sm md:text-base leading-relaxed">
+                    <p class="text-xl md:text-3xl font-bold text-[var(--lime)] mb-4">Bienvenido a RS ART STUDIO</p>
+                    <p>Somos un estudio creativo dedicado a transformar ideas en arte. <br> 
+                    Especialistas en diseño gráfico, ilustración y contenido visual de alta calidad.</p>
+                    <p class="mt-4 text-gray-500 text-xs">Este contenido puede ser editado desde el panel de administrador</p>
+                </div>
+            </div>
+        </section>
 
-            <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 md:gap-12">
-                <!-- Configuración General -->
-                <div class="space-y-6 md:space-y-8">
-                    <div class="bg-white/5 p-6 md:p-8 rounded-[30px] md:rounded-[40px] border border-white/10">
-                        <h3 class="text-xl md:text-2xl mb-4 md:mb-6 font-bold text-[var(--lime)] uppercase italic text-center">Configuración</h3>
-                        <div class="space-y-4">
-                            <input type="text" id="conf-exito-msg" placeholder="Mensaje de Éxito" class="w-full bg-black/40 p-4 rounded-xl border border-white/10 text-xs">
-                            <input type="file" onchange="convertirBase64(this, 'exito-img')" class="text-[10px] text-gray-500">
-                            <input type="hidden" id="adm-exito-img">
-                            <div class="border-t border-white/10 pt-4 mt-2">
-                                <label class="text-[var(--lime)] text-xs font-bold uppercase block mb-2">TASA DE CAMBIO (USD → Bs)</label>
-                                <input type="number" id="conf-tasa" step="0.01" placeholder="Tasa del día" class="w-full bg-black/40 p-4 rounded-xl border border-white/10 text-xs">
+        <!-- QUIÉNES SOMOS -->
+        <section id="quienes-somos" class="container mx-auto p-4 md:p-6 seccion-menu">
+            <div class="fade-in-up bg-white/5 rounded-3xl p-6 md:p-12 border border-white/10">
+                <h2 class="text-2xl md:text-4xl font-black italic mb-6 text-[var(--lime)]">QUIÉNES SOMOS</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <div id="quienes-somos-texto" class="text-gray-300 text-sm md:text-base leading-relaxed">
+                            <p class="font-bold text-white text-lg mb-4">RS ART STUDIO</p>
+                            <p>Somos un estudio creativo apasionado por el arte y el diseño. Nuestro objetivo es transformar ideas en experiencias visuales únicas que conecten con las personas.</p>
+                            <p class="mt-4">Con años de experiencia en el mundo del diseño gráfico, ilustración y contenido visual, ofrecemos soluciones creativas de alta calidad para cada proyecto.</p>
+                            <p class="mt-4 text-gray-500 text-xs">Este contenido puede ser editado desde el panel de administrador</p>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="slider-container" id="sliderQuienes">
+                            <div class="slider-track" id="sliderTrack">
+                                <div class="slider-slide">
+                                    <img id="quienes-img-1" src="https://via.placeholder.com/600x450/2D1B4E/C6FF00?text=RS+ART+1" alt="RS ART 1">
+                                </div>
+                                <div class="slider-slide">
+                                    <img id="quienes-img-2" src="https://via.placeholder.com/600x450/2D1B4E/E91E63?text=RS+ART+2" alt="RS ART 2">
+                                </div>
+                                <div class="slider-slide">
+                                    <img id="quienes-img-3" src="https://via.placeholder.com/600x450/2D1B4E/C6FF00?text=RS+ART+3" alt="RS ART 3">
+                                </div>
+                                <div class="slider-slide">
+                                    <img id="quienes-img-4" src="https://via.placeholder.com/600x450/2D1B4E/E91E63?text=RS+ART+4" alt="RS ART 4">
+                                </div>
                             </div>
-                            <div class="border-t border-white/10 pt-4 mt-2">
-                                <label class="text-[var(--lime)] text-xs font-bold uppercase block mb-2">NÚMERO WHATSAPP (con código país)</label>
-                                <input type="text" id="conf-whatsapp" placeholder="Ej: 584123456789" class="w-full bg-black/40 p-4 rounded-xl border border-white/10 text-xs">
-                            </div>
-                            <button onclick="guardarConfigExito()" class="w-full bg-[var(--lime)] text-black font-black py-3 md:py-4 rounded-xl shadow-lg text-xs uppercase">Actualizar Todo</button>
+                            
+                            <button class="slider-btn slider-btn-prev" onclick="cambiarSlide(-1)">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <button class="slider-btn slider-btn-next" onclick="cambiarSlide(1)">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                            
+                            <div class="slider-dots" id="sliderDots"></div>
                         </div>
                     </div>
-                    <div class="bg-white/5 p-6 md:p-8 rounded-[30px] md:rounded-[40px] border border-white/10">
-                        <h3 class="text-xl md:text-2xl mb-4 md:mb-6 font-bold text-[var(--magenta)] uppercase italic text-center">Bancos / Pago</h3>
+                </div>
+            </div>
+        </section>
+
+        <!-- PRODUCTOS -->
+        <section id="productos" class="container mx-auto p-4 md:p-6 seccion-menu">
+            <div class="flex items-center justify-between mb-8 md:mb-12 fade-in-up">
+                <h2 class="text-2xl md:text-4xl font-black italic">CATÁLOGO <span class="text-[var(--magenta)]">RS</span></h2>
+                <div id="status-fb" class="text-[8px] md:text-[10px] font-bold px-3 py-1 md:px-4 md:py-2 bg-white/5 rounded-full text-gray-500 border border-white/10">CONECTANDO...</div>
+            </div>
+            <div id="lista-contenido" class="space-y-12 fade-in-up"></div>
+        </section>
+
+        <!-- TRABAJOS -->
+        <section id="trabajos" class="container mx-auto p-4 md:p-6 seccion-menu">
+            <div class="fade-in-up">
+                <h2 class="text-2xl md:text-4xl font-black italic mb-8 text-[var(--lime)]">TRABAJOS DESTACADOS</h2>
+                
+                <div class="contenedor-texto-animado mb-8">
+                    <div id="texto-trabajos-animado" class="texto-animado text-[var(--lime)] font-bold text-lg md:text-2xl">
+                        ✦ Diseño Gráfico ✦ Ilustración ✦ Contenido Visual ✦ Branding ✦ Arte Digital ✦
+                    </div>
+                </div>
+                
+                <div id="contenido-trabajos" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-white/5 rounded-2xl p-6 border border-white/10 text-center">
+                        <i class="fas fa-paint-brush text-5xl text-[var(--magenta)] mb-4"></i>
+                        <h3 class="font-bold text-lg">Diseño Gráfico</h3>
+                        <p class="text-gray-400 text-sm">Identidad visual, branding y más</p>
+                    </div>
+                    <div class="bg-white/5 rounded-2xl p-6 border border-white/10 text-center">
+                        <i class="fas fa-vector-square text-5xl text-[var(--lime)] mb-4"></i>
+                        <h3 class="font-bold text-lg">Ilustración</h3>
+                        <p class="text-gray-400 text-sm">Arte digital, retratos y creatividad</p>
+                    </div>
+                    <div class="bg-white/5 rounded-2xl p-6 border border-white/10 text-center">
+                        <i class="fas fa-video text-5xl text-[var(--magenta)] mb-4"></i>
+                        <h3 class="font-bold text-lg">Contenido Visual</h3>
+                        <p class="text-gray-400 text-sm">Fotografía, edición y producción</p>
+                    </div>
+                </div>
+                <div id="texto-trabajos" class="mt-6 text-gray-400 text-sm text-center">
+                    <p>Este contenido puede ser personalizado desde el panel de administrador</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- CONTACTO -->
+        <section id="contacto" class="container mx-auto p-4 md:p-6 seccion-menu">
+            <div class="fade-in-up bg-white/5 rounded-3xl p-6 md:p-12 border border-white/10">
+                <h2 class="text-2xl md:text-4xl font-black italic mb-6 text-[var(--lime)]">CONTACTO</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <p class="text-gray-300 mb-4">¿Tienes una idea? ¡Hablemos!</p>
                         <div class="space-y-4">
-                            <textarea id="conf-pago-movil" class="w-full bg-black/40 p-4 rounded-xl border border-white/10 h-20 text-xs" placeholder="Pago Móvil (Número, cédula, banco)"></textarea>
-                            <textarea id="conf-transferencia" class="w-full bg-black/40 p-4 rounded-xl border border-white/10 h-20 text-xs" placeholder="Transferencia (N° cuenta, banco, titular)"></textarea>
-                            <textarea id="conf-efectivo" class="w-full bg-black/40 p-4 rounded-xl border border-white/10 h-20 text-xs" placeholder="Efectivo (Instrucciones para pago en efectivo)"></textarea>
-                            <textarea id="conf-puntoventa" class="w-full bg-black/40 p-4 rounded-xl border border-white/10 h-20 text-xs" placeholder="Punto de Venta (Instrucciones)"></textarea>
-                            <button onclick="guardarConfigPagos()" class="w-full bg-white/10 hover:bg-white/20 text-white font-black py-3 md:py-4 rounded-xl text-xs uppercase">Guardar Métodos de Pago</button>
+                            <div class="flex items-center gap-4">
+                                <i class="fas fa-envelope text-[var(--lime)] w-6"></i>
+                                <span id="contacto-email">rsartstudio@email.com</span>
+                            </div>
+                            <div class="flex items-center gap-4">
+                                <i class="fab fa-instagram text-[var(--lime)] w-6"></i>
+                                <a href="https://www.instagram.com/robert_paraco" target="_blank" class="hover:text-[var(--lime)]">@robert_paraco</a>
+                            </div>
+                            <div class="flex items-center gap-4">
+                                <i class="fab fa-whatsapp text-[var(--lime)] w-6"></i>
+                                <a href="https://wa.me/+584125966071" target="_blank" class="hover:text-[var(--lime)]">+58 412-5966071</a>
+                            </div>
+                        </div>
+                        <p class="text-gray-400 text-sm mt-6">Información de contacto configurable desde el panel de administrador</p>
+                        <div class="flex gap-4 mt-4">
+                            <a href="https://www.instagram.com/robert_paraco?igsh=MWx1NXdpZDIxdHdsMg==" target="_blank" class="social-icon text-3xl text-pink-500">
+                                <i class="fab fa-instagram"></i>
+                            </a>
+                            <a href="https://wa.me/+584125966071" target="_blank" class="social-icon text-3xl text-green-500">
+                                <i class="fab fa-whatsapp"></i>
+                            </a>
                         </div>
                     </div>
-                </div>
-
-                <!-- Secciones -->
-                <div class="bg-white/5 p-6 md:p-8 rounded-[30px] md:rounded-[40px] border border-white/10">
-                    <h3 class="text-xl md:text-2xl mb-6 font-bold flex items-center gap-2 uppercase italic text-[var(--lime)]">SECCIONES</h3>
-                    <div id="lista-secciones" class="space-y-3 mb-6 max-h-60 overflow-y-auto"></div>
-                    <hr class="my-6 border-white/10">
-                    <div class="space-y-4">
-                        <input type="text" id="adm-sec-titulo" placeholder="Título de la Sección" class="w-full bg-black/40 p-4 rounded-xl border border-white/10 text-xs">
-                        <button onclick="guardarSeccion()" class="w-full bg-[var(--magenta)] font-black py-3 md:py-4 rounded-xl text-xs uppercase">Agregar Sección</button>
+                    <div>
+                        <div class="video-container">
+                            <video id="videoInformativo" poster="https://via.placeholder.com/500x280/2D1B4E/C6FF00?text=RS+ART+VIDEO">
+                                <source src="https://github.com/tuusuario/tu-repositorio/raw/main/video-informativo.mp4" type="video/mp4">
+                                Tu navegador no soporta videos HTML5.
+                            </video>
+                            <div class="play-btn" onclick="reproducirVideo()">
+                                <i class="fas fa-play"></i>
+                            </div>
+                        </div>
+                        <p class="text-gray-500 text-xs text-center mt-2">Video informativo - RS ART STUDIO</p>
                     </div>
                 </div>
+            </div>
+        </section>
 
-                <!-- Productos -->
-                <div class="bg-white/5 p-6 md:p-8 rounded-[30px] md:rounded-[40px] border border-white/10">
-                    <h3 class="text-xl md:text-2xl mb-6 font-bold flex items-center gap-2 uppercase italic text-[var(--lime)]">PRODUCTOS</h3>
-                    <div id="inventario-lista" class="space-y-3 max-h-60 overflow-y-auto mb-4"></div>
-                    <hr class="my-6 border-white/10">
-                    <div class="space-y-4">
-                        <select id="adm-seccion-select" class="w-full bg-black/40 p-4 rounded-xl border border-white/10 text-xs"></select>
-                        <input type="text" id="adm-nombre" placeholder="Nombre Producto" class="w-full bg-black/40 p-4 rounded-xl border border-white/10 text-xs">
-                        <input type="number" id="adm-precio" placeholder="Precio (USD)" class="w-full bg-black/40 p-4 rounded-xl border border-white/10 text-xs">
-                        <input type="number" id="adm-stock" placeholder="Cantidad Disponible (Stock)" class="w-full bg-black/40 p-4 rounded-xl border border-white/10 text-xs">
-                        <textarea id="adm-descripcion" placeholder="Descripción (cada línea es un ítem de la lista)" class="w-full bg-black/40 p-4 rounded-xl border border-white/10 h-24 text-xs"></textarea>
-                        <input type="file" onchange="convertirBase64(this, 'img1')" class="text-[10px]">
-                        <input type="hidden" id="adm-img1">
-                        <button onclick="guardarProducto()" class="w-full bg-[var(--magenta)] font-black py-3 md:py-4 rounded-xl text-xs uppercase">Añadir Producto</button>
+        <!-- FOOTER -->
+        <footer class="container mx-auto p-6 md:p-10 border-t border-white/10 mt-12">
+            <div class="flex flex-col items-center gap-6">
+                <h3 class="text-2xl md:text-3xl font-black italic text-[var(--lime)]">RS ART STUDIO</h3>
+                <div class="flex gap-8">
+                    <a href="https://www.instagram.com/robert_paraco?igsh=MWx1NXdpZDIxdHdsMg==" target="_blank" class="social-icon text-3xl text-pink-500 hover:text-pink-400 transition-all">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                    <a href="https://wa.me/+584125966071" target="_blank" class="social-icon text-3xl text-green-500 hover:text-green-400 transition-all">
+                        <i class="fab fa-whatsapp"></i>
+                    </a>
+                </div>
+                <p class="text-gray-600 text-xs md:text-sm text-center">© 2026 RS ART STUDIO - Todos los derechos reservados</p>
+            </div>
+        </footer>
+
+        <!-- PANEL ADMIN -->
+        <div id="panelAdmin" class="hidden fixed inset-0 z-[1000] admin-modal overflow-y-auto p-4 md:p-8">
+            <div class="container mx-auto">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 border-b border-white/10 pb-6 gap-4">
+                    <div>
+                        <h2 class="text-3xl md:text-5xl font-black text-[var(--lime)] tracking-tighter uppercase">SISTEMA ADMIN</h2>
+                        <p class="text-gray-500 font-bold uppercase tracking-widest text-[10px] md:text-sm">Control Total de Operaciones</p>
                     </div>
+                    <button onclick="cerrarAdmin()" class="absolute top-4 right-4 md:static bg-white/5 w-12 h-12 md:w-16 md:h-16 rounded-full text-2xl md:text-3xl hover:bg-red-500 transition-all">&times;</button>
                 </div>
 
-                <!-- Pedidos -->
-                <div class="bg-white/5 p-6 md:p-8 rounded-[30px] md:rounded-[40px] border border-white/10 col-span-1 xl:col-span-3">
-                    <div class="flex justify-between items-center mb-6">
-                        <h3 class="text-xl md:text-2xl font-bold uppercase italic">Pedidos</h3>
-                        <div class="flex gap-2">
-                            <button onclick="descargarPDF()" class="w-10 h-10 bg-orange-600 rounded-lg flex items-center justify-center"><i class="fas fa-file-pdf"></i></button>
-                            <button onclick="borrarPedidos()" class="w-10 h-10 bg-red-600 rounded-lg flex items-center justify-center"><i class="fas fa-trash-alt"></i></button>
+                <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 md:gap-12">
+                    <!-- Configuración General -->
+                    <div class="space-y-6 md:space-y-8">
+                        <div class="bg-white/5 p-6 md:p-8 rounded-[30px] md:rounded-[40px] border border-white/10">
+                            <h3 class="text-xl md:text-2xl mb-4 md:mb-6 font-bold text-[var(--lime)] uppercase italic text-center">Configuración</h3>
+                            <div class="space-y-4">
+                                <input type="text" id="conf-exito-msg" placeholder="Mensaje de Éxito" class="w-full bg-black/40 p-4 rounded-xl border border-white/10 text-xs">
+                                <input type="file" onchange="convertirBase64(this, 'exito-img')" class="text-[10px] text-gray-500">
+                                <input type="hidden" id="adm-exito-img">
+                                <div class="border-t border-white/10 pt-4 mt-2">
+                                    <label class="text-[var(--lime)] text-xs font-bold uppercase block mb-2">TASA DE CAMBIO (USD → Bs)</label>
+                                    <input type="number" id="conf-tasa" step="0.01" placeholder="Tasa del día" class="w-full bg-black/40 p-4 rounded-xl border border-white/10 text-xs">
+                                </div>
+                                <div class="border-t border-white/10 pt-4 mt-2">
+                                    <label class="text-[var(--lime)] text-xs font-bold uppercase block mb-2">NÚMERO WHATSAPP</label>
+                                    <input type="text" id="conf-whatsapp" placeholder="Ej: 584123456789" class="w-full bg-black/40 p-4 rounded-xl border border-white/10 text-xs">
+                                </div>
+                                <div class="border-t border-white/10 pt-4 mt-2">
+                                    <label class="text-[var(--lime)] text-xs font-bold uppercase block mb-2">EMAIL NOTIFICACIONES</label>
+                                    <input type="email" id="conf-email" placeholder="tuemail@ejemplo.com" class="w-full bg-black/40 p-4 rounded-xl border border-white/10 text-xs">
+                                </div>
+                                <div class="border-t border-white/10 pt-4 mt-2">
+                                    <label class="text-[var(--lime)] text-xs font-bold uppercase block mb-2">URL VIDEO (GitHub)</label>
+                                    <input type="text" id="conf-video-url" placeholder="https://github.com/.../video.mp4" class="w-full bg-black/40 p-4 rounded-xl border border-white/10 text-xs">
+                                </div>
+                                <button onclick="guardarConfigExito()" class="w-full bg-[var(--lime)] text-black font-black py-3 md:py-4 rounded-xl shadow-lg text-xs uppercase">Actualizar Todo</button>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white/5 p-6 md:p-8 rounded-[30px] md:rounded-[40px] border border-white/10">
+                            <h3 class="text-xl md:text-2xl mb-4 md:mb-6 font-bold text-[var(--magenta)] uppercase italic text-center">Bancos / Pago</h3>
+                            <div class="space-y-4">
+                                <textarea id="conf-pago-movil" class="w-full bg-black/40 p-4 rounded-xl border border-white/10 h-20 text-xs" placeholder="Pago Móvil (Número, cédula, banco)"></textarea>
+                                <textarea id="conf-transferencia" class="w-full bg-black/40 p-4 rounded-xl border border-white/10 h-20 text-xs" placeholder="Transferencia (N° cuenta, banco, titular)"></textarea>
+                                <textarea id="conf-efectivo" class="w-full bg-black/40 p-4 rounded-xl border border-white/10 h-20 text-xs" placeholder="Efectivo (Instrucciones)"></textarea>
+                                <textarea id="conf-puntoventa" class="w-full bg-black/40 p-4 rounded-xl border border-white/10 h-20 text-xs" placeholder="Punto de Venta (Instrucciones)"></textarea>
+                                <button onclick="guardarConfigPagos()" class="w-full bg-white/10 hover:bg-white/20 text-white font-black py-3 md:py-4 rounded-xl text-xs uppercase">Guardar Métodos de Pago</button>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white/5 p-6 md:p-8 rounded-[30px] md:rounded-[40px] border border-white/10">
+                            <h3 class="text-xl md:text-2xl mb-4 md:mb-6 font-bold text-[var(--lime)] uppercase italic text-center">Contenido del Sitio</h3>
+                            <div class="space-y-4">
+                                <label class="text-xs text-gray-400">Texto de Inicio</label>
+                                <textarea id="conf-texto-inicio" class="w-full bg-black/40 p-4 rounded-xl border border-white/10 h-24 text-xs" placeholder="Texto de bienvenida"></textarea>
+                                <label class="text-xs text-gray-400">Texto "Quiénes Somos"</label>
+                                <textarea id="conf-texto-quienes" class="w-full bg-black/40 p-4 rounded-xl border border-white/10 h-32 text-xs" placeholder="Texto completo de Quiénes Somos"></textarea>
+                                <label class="text-xs text-gray-400">Imágenes Slider (4 imágenes)</label>
+                                <input type="file" onchange="convertirBase64Multiple(this, 'quienes-img')" multiple class="text-[10px] text-gray-500">
+                                <div class="grid grid-cols-4 gap-2 mt-2" id="preview-quienes-imgs"></div>
+                                <label class="text-xs text-gray-400">Texto Trabajos (animado)</label>
+                                <textarea id="conf-texto-trabajos-animado" class="w-full bg-black/40 p-4 rounded-xl border border-white/10 h-20 text-xs" placeholder="Texto para animación de trabajos"></textarea>
+                                <label class="text-xs text-gray-400">Texto de Trabajos</label>
+                                <textarea id="conf-texto-trabajos" class="w-full bg-black/40 p-4 rounded-xl border border-white/10 h-20 text-xs" placeholder="Texto de trabajos"></textarea>
+                                <label class="text-xs text-gray-400">Email de Contacto</label>
+                                <input type="email" id="conf-contacto-email" placeholder="contacto@rsart.com" class="w-full bg-black/40 p-4 rounded-xl border border-white/10 text-xs">
+                                <button onclick="guardarContenidoSitio()" class="w-full bg-[var(--lime)] text-black font-black py-3 md:py-4 rounded-xl shadow-lg text-xs uppercase">Guardar Contenido</button>
+                            </div>
                         </div>
                     </div>
-                    <div id="lista-pedidos" class="space-y-4 max-h-96 overflow-y-auto"></div>
+
+                    <!-- Secciones -->
+                    <div class="bg-white/5 p-6 md:p-8 rounded-[30px] md:rounded-[40px] border border-white/10">
+                        <h3 class="text-xl md:text-2xl mb-6 font-bold flex items-center gap-2 uppercase italic text-[var(--lime)]">SECCIONES</h3>
+                        <div id="lista-secciones" class="space-y-3 mb-6 max-h-60 overflow-y-auto"></div>
+                        <hr class="my-6 border-white/10">
+                        <div class="space-y-4">
+                            <input type="text" id="adm-sec-titulo" placeholder="Título de la Sección" class="w-full bg-black/40 p-4 rounded-xl border border-white/10 text-xs">
+                            <button onclick="guardarSeccion()" class="w-full bg-[var(--magenta)] font-black py-3 md:py-4 rounded-xl text-xs uppercase">Agregar Sección</button>
+                        </div>
+                    </div>
+
+                    <!-- Productos -->
+                    <div class="bg-white/5 p-6 md:p-8 rounded-[30px] md:rounded-[40px] border border-white/10">
+                        <h3 class="text-xl md:text-2xl mb-6 font-bold flex items-center gap-2 uppercase italic text-[var(--lime)]">PRODUCTOS</h3>
+                        <div id="inventario-lista" class="space-y-3 max-h-60 overflow-y-auto mb-4"></div>
+                        <hr class="my-6 border-white/10">
+                        <div class="space-y-4">
+                            <select id="adm-seccion-select" class="w-full bg-black/40 p-4 rounded-xl border border-white/10 text-xs"></select>
+                            <input type="text" id="adm-nombre" placeholder="Nombre Producto" class="w-full bg-black/40 p-4 rounded-xl border border-white/10 text-xs">
+                            <input type="number" id="adm-precio" placeholder="Precio (USD)" class="w-full bg-black/40 p-4 rounded-xl border border-white/10 text-xs">
+                            <input type="number" id="adm-stock" placeholder="Cantidad (Stock)" class="w-full bg-black/40 p-4 rounded-xl border border-white/10 text-xs">
+                            <textarea id="adm-descripcion" placeholder="Descripción (cada línea es un ítem)" class="w-full bg-black/40 p-4 rounded-xl border border-white/10 h-24 text-xs"></textarea>
+                            <input type="file" onchange="convertirBase64(this, 'img1')" class="text-[10px]">
+                            <input type="hidden" id="adm-img1">
+                            <button onclick="guardarProducto()" class="w-full bg-[var(--magenta)] font-black py-3 md:py-4 rounded-xl text-xs uppercase">Añadir Producto</button>
+                        </div>
+                    </div>
+
+                    <!-- CAJA REGISTRADORA -->
+                    <div class="bg-white/5 p-6 md:p-8 rounded-[30px] md:rounded-[40px] border border-white/10 col-span-1 xl:col-span-3">
+                        <h3 class="text-xl md:text-2xl mb-6 font-bold flex items-center gap-2 uppercase italic text-[var(--lime)]">
+                            <i class="fas fa-cash-register"></i> CAJA REGISTRADORA
+                        </h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <!-- Selector de productos con búsqueda -->
+                            <div class="md:col-span-2">
+                                <label class="text-xs text-gray-400 uppercase tracking-wider">Buscar Producto</label>
+                                <div class="relative">
+                                    <input type="text" id="buscar-producto" placeholder="Escribe para buscar productos..." 
+                                        class="w-full bg-black/40 p-4 rounded-xl border border-white/10 text-xs pl-10"
+                                        oninput="filtrarProductosBusqueda(this.value)">
+                                    <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"></i>
+                                </div>
+                                
+                                <select id="select-producto-caja" class="w-full bg-black/40 p-4 rounded-xl border border-white/10 text-xs mt-2" onchange="seleccionarProductoCaja()">
+                                    <option value="">-- Seleccionar Producto --</option>
+                                </select>
+                                
+                                <div class="grid grid-cols-2 gap-3 mt-3">
+                                    <div>
+                                        <label class="text-xs text-gray-400 uppercase tracking-wider">Cantidad</label>
+                                        <input type="number" id="cantidad-producto-caja" value="1" min="1" 
+                                            class="w-full bg-black/40 p-4 rounded-xl border border-white/10 text-xs">
+                                    </div>
+                                    <div>
+                                        <label class="text-xs text-gray-400 uppercase tracking-wider">Precio Unitario</label>
+                                        <input type="text" id="precio-producto-caja" readonly 
+                                            class="w-full bg-black/40 p-4 rounded-xl border border-white/10 text-xs text-[var(--lime)] font-bold">
+                                    </div>
+                                </div>
+                                
+                                <button onclick="agregarProductoCaja()" class="w-full bg-[var(--lime)] text-black font-black py-3 rounded-xl text-xs uppercase mt-3 hover:bg-[#d4ff00] transition">
+                                    <i class="fas fa-plus-circle"></i> Agregar al Ticket
+                                </button>
+                            </div>
+                            
+                            <!-- Resumen del ticket -->
+                            <div>
+                                <label class="text-xs text-gray-400 uppercase tracking-wider">Cliente</label>
+                                <input type="text" id="cliente-caja" placeholder="Nombre del cliente" 
+                                    class="w-full bg-black/40 p-4 rounded-xl border border-white/10 text-xs">
+                                
+                                <label class="text-xs text-gray-400 uppercase tracking-wider mt-3 block">Teléfono del Cliente</label>
+                                <input type="text" id="telefono-caja" placeholder="Ej: 584123456789" 
+                                    class="w-full bg-black/40 p-4 rounded-xl border border-white/10 text-xs">
+                                
+                                <div class="mt-4 bg-black/40 rounded-xl p-4 border border-white/10">
+                                    <h4 class="text-xs font-bold text-[var(--lime)] uppercase tracking-wider mb-3">TICKET DE VENTA</h4>
+                                    <div id="ticket-productos" class="max-h-40 overflow-y-auto space-y-1 text-xs">
+                                        <p class="text-gray-500 text-center">No hay productos agregados</p>
+                                    </div>
+                                    <div class="border-t border-white/10 mt-3 pt-3">
+                                        <div class="flex justify-between text-xs">
+                                            <span class="text-gray-400">Subtotal USD:</span>
+                                            <span class="font-bold text-[var(--lime)]" id="subtotal-usd-caja">$0.00</span>
+                                        </div>
+                                        <div class="flex justify-between text-xs">
+                                            <span class="text-gray-400">Subtotal Bs:</span>
+                                            <span class="font-bold text-[var(--magenta)]" id="subtotal-bs-caja">Bs 0.00</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <button onclick="registrarVentaCaja()" class="w-full bg-[var(--magenta)] text-white font-black py-4 rounded-xl text-xs uppercase mt-3 hover:bg-[#c2185b] transition">
+                                    <i class="fas fa-check-circle"></i> REGISTRAR VENTA
+                                </button>
+                                <button onclick="limpiarTicketCaja()" class="w-full bg-white/10 text-white font-bold py-2 rounded-xl text-xs uppercase mt-2 hover:bg-white/20 transition">
+                                    <i class="fas fa-trash"></i> Limpiar Ticket
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pedidos y Control de Ventas -->
+                    <div class="bg-white/5 p-6 md:p-8 rounded-[30px] md:rounded-[40px] border border-white/10 col-span-1 xl:col-span-3">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-xl md:text-2xl font-bold uppercase italic">Pedidos</h3>
+                            <div class="flex gap-2">
+                                <button onclick="descargarPDF()" class="w-10 h-10 bg-orange-600 rounded-lg flex items-center justify-center"><i class="fas fa-file-pdf"></i></button>
+                                <button onclick="borrarPedidos()" class="w-10 h-10 bg-red-600 rounded-lg flex items-center justify-center"><i class="fas fa-trash-alt"></i></button>
+                            </div>
+                        </div>
+                        
+                        <!-- Panel de Control de Ventas del Día -->
+                        <div class="ventas-dia mb-6">
+                            <h4 class="text-lg font-bold text-[var(--lime)] mb-4 uppercase tracking-wider">📊 CONTROL DE VENTAS DEL DÍA</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                                <div class="total-card">
+                                    <div class="label">Total Compras</div>
+                                    <div class="numero" id="total-compras-dia">0</div>
+                                </div>
+                                <div class="total-card" style="border-color: rgba(198,255,0,0.3);">
+                                    <div class="label">Total en USD</div>
+                                    <div class="numero" id="total-usd-dia">$0.00</div>
+                                </div>
+                                <div class="total-card" style="border-color: rgba(233,30,99,0.3);">
+                                    <div class="label">Total en Bs</div>
+                                    <div class="numero" id="total-bs-dia">Bs 0.00</div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex flex-wrap gap-3 mb-4">
+                                <button onclick="exportarExcelDia()" class="bg-green-600 hover:bg-green-700 px-6 py-3 rounded-xl font-bold text-xs uppercase transition flex items-center gap-2">
+                                    <i class="fas fa-file-excel"></i> Exportar Excel
+                                </button>
+                                <button onclick="enviarWhatsAppDia()" class="bg-[#25D366] hover:bg-[#20b85a] px-6 py-3 rounded-xl font-bold text-xs uppercase transition flex items-center gap-2">
+                                    <i class="fab fa-whatsapp"></i> Enviar por WhatsApp
+                                </button>
+                            </div>
+                            
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-xs md:text-sm" id="tabla-ventas-dia">
+                                    <thead>
+                                        <tr class="border-b border-white/10">
+                                            <th class="text-left py-2 px-3 text-gray-400 uppercase font-bold">Fecha</th>
+                                            <th class="text-left py-2 px-3 text-gray-400 uppercase font-bold">Hora</th>
+                                            <th class="text-left py-2 px-3 text-gray-400 uppercase font-bold">Cliente</th>
+                                            <th class="text-left py-2 px-3 text-gray-400 uppercase font-bold">Productos</th>
+                                            <th class="text-left py-2 px-3 text-gray-400 uppercase font-bold">Total USD</th>
+                                            <th class="text-left py-2 px-3 text-gray-400 uppercase font-bold">Total Bs</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tabla-ventas-body">
+                                        <tr><td colspan="6" class="text-center text-gray-500 py-4">No hay ventas registradas hoy</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <div id="lista-pedidos" class="space-y-4 max-h-96 overflow-y-auto"></div>
+                    </div>
                 </div>
             </div>
         </div>
+
+        <audio id="sonidoSirena" loop><source src="https://www.soundjay.com/buttons/sounds/beep-01a.mp3" type="audio/mpeg"></audio>
     </div>
 
-    <audio id="sonidoSirena" loop><source src="https://www.soundjay.com/buttons/sounds/beep-01a.mp3" type="audio/mpeg"></audio>
-
     <script>
+        // ============================================================
+        // 1. FONDO 3D CON ANIMACIONES PROFESIONALES
+        // ============================================================
+        (function initFondo3D() {
+            const contenedor = document.getElementById('fondo-3d');
+            const scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0F091A);
+            
+            const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 2, 14);
+            camera.lookAt(0, 0, 0);
+            
+            const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            contenedor.appendChild(renderer.domElement);
+
+            const luzAmbiente = new THREE.AmbientLight(0x404060);
+            scene.add(luzAmbiente);
+            
+            const luz1 = new THREE.DirectionalLight(0xC6FF00, 0.6);
+            luz1.position.set(2, 3, 4);
+            scene.add(luz1);
+            
+            const luz2 = new THREE.DirectionalLight(0xE91E63, 0.4);
+            luz2.position.set(-3, -1, -2);
+            scene.add(luz2);
+
+            const colores = [0xC6FF00, 0x2D1B4E, 0xE91E63];
+            
+            const objetos = [];
+            const tipos = ['sphere', 'box', 'torus', 'cone', 'cylinder', 'dodecahedron'];
+            
+            for (let i = 0; i < 35; i++) {
+                const tipo = tipos[i % tipos.length];
+                let geometria;
+                const size = 0.2 + Math.random() * 0.6;
+                
+                switch(tipo) {
+                    case 'sphere':
+                        geometria = new THREE.SphereGeometry(size, 16, 16);
+                        break;
+                    case 'box':
+                        geometria = new THREE.BoxGeometry(size, size, size);
+                        break;
+                    case 'torus':
+                        geometria = new THREE.TorusGeometry(size * 0.7, size * 0.3, 12, 16);
+                        break;
+                    case 'cone':
+                        geometria = new THREE.ConeGeometry(size * 0.6, size * 1.2, 8);
+                        break;
+                    case 'cylinder':
+                        geometria = new THREE.CylinderGeometry(size * 0.5, size * 0.5, size * 1.2, 8);
+                        break;
+                    case 'dodecahedron':
+                        geometria = new THREE.DodecahedronGeometry(size * 0.7);
+                        break;
+                    default:
+                        geometria = new THREE.SphereGeometry(size, 16, 16);
+                }
+                
+                const color = colores[i % colores.length];
+                const material = new THREE.MeshPhongMaterial({
+                    color: color,
+                    emissive: color,
+                    emissiveIntensity: 0.15 + Math.random() * 0.25,
+                    transparent: true,
+                    opacity: 0.3 + Math.random() * 0.4,
+                    wireframe: Math.random() > 0.6,
+                    shininess: 30
+                });
+                
+                const objeto = new THREE.Mesh(geometria, material);
+                
+                objeto.position.x = (Math.random() - 0.5) * 22;
+                objeto.position.y = (Math.random() - 0.5) * 12;
+                objeto.position.z = (Math.random() - 0.5) * 10 - 3;
+                
+                objeto.userData = {
+                    velocidadX: (Math.random() - 0.5) * 0.015,
+                    velocidadY: (Math.random() - 0.5) * 0.015,
+                    velocidadZ: (Math.random() - 0.5) * 0.008,
+                    rotacionX: (Math.random() - 0.5) * 0.02,
+                    rotacionY: (Math.random() - 0.5) * 0.02,
+                    rotacionZ: (Math.random() - 0.5) * 0.01,
+                    fase: Math.random() * Math.PI * 2,
+                    tipoMov: Math.floor(Math.random() * 3),
+                    escalaBase: 0.6 + Math.random() * 0.8
+                };
+                
+                scene.add(objeto);
+                objetos.push(objeto);
+            }
+
+            const particulasGeom = new THREE.BufferGeometry();
+            const numParticulas = 1000;
+            const posiciones = new Float32Array(numParticulas * 3);
+            const coloresPart = new Float32Array(numParticulas * 3);
+            
+            for (let i = 0; i < numParticulas; i++) {
+                const i3 = i * 3;
+                posiciones[i3] = (Math.random() - 0.5) * 32;
+                posiciones[i3 + 1] = (Math.random() - 0.5) * 18;
+                posiciones[i3 + 2] = (Math.random() - 0.5) * 12 - 4;
+                
+                const color = new THREE.Color(colores[i % colores.length]);
+                coloresPart[i3] = color.r;
+                coloresPart[i3 + 1] = color.g;
+                coloresPart[i3 + 2] = color.b;
+            }
+            
+            particulasGeom.setAttribute('position', new THREE.BufferAttribute(posiciones, 3));
+            particulasGeom.setAttribute('color', new THREE.BufferAttribute(coloresPart, 3));
+            
+            const particulasMat = new THREE.PointsMaterial({
+                size: 0.07,
+                transparent: true,
+                opacity: 0.4,
+                vertexColors: true,
+                blending: THREE.AdditiveBlending
+            });
+            
+            const particulas = new THREE.Points(particulasGeom, particulasMat);
+            scene.add(particulas);
+
+            let scrollY = 0;
+            let tiempo = 0;
+            
+            function animar() {
+                requestAnimationFrame(animar);
+                tiempo += 0.01;
+                
+                const scrollFactor = scrollY / 400;
+                
+                objetos.forEach((obj, index) => {
+                    const ud = obj.userData;
+                    
+                    switch(ud.tipoMov % 3) {
+                        case 0:
+                            obj.position.x += Math.sin(tiempo * 0.5 + ud.fase + scrollFactor * 0.3) * 0.01;
+                            obj.position.y += Math.cos(tiempo * 0.7 + ud.fase * 1.3 + scrollFactor * 0.5) * 0.01;
+                            obj.position.z += Math.sin(tiempo * 0.3 + ud.fase * 0.7 + scrollFactor * 0.2) * 0.005;
+                            break;
+                        case 1:
+                            const angulo = tiempo * 0.3 + ud.fase + scrollFactor * 0.4;
+                            obj.position.x += Math.cos(angulo) * 0.008;
+                            obj.position.y += Math.sin(angulo * 0.7 + ud.fase) * 0.008;
+                            obj.position.z += Math.sin(angulo * 0.5) * 0.005;
+                            break;
+                        case 2:
+                            const pulso = Math.sin(tiempo * 1.5 + ud.fase + scrollFactor) * 0.01;
+                            obj.position.x += pulso * 0.5;
+                            obj.position.y += pulso * 0.3;
+                            obj.position.z += Math.sin(tiempo * 0.8 + ud.fase) * 0.005;
+                            break;
+                    }
+                    
+                    const escalaScroll = 1 + Math.sin(scrollFactor * 0.4 + ud.fase) * 0.15;
+                    const escala = (ud.escalaBase + Math.sin(tiempo * 1.5 + ud.fase) * 0.25) * escalaScroll;
+                    obj.scale.set(escala, escala, escala);
+                    
+                    obj.rotation.x += ud.rotacionX + scrollFactor * 0.001;
+                    obj.rotation.y += ud.rotacionY + scrollFactor * 0.002;
+                    obj.rotation.z += ud.rotacionZ;
+                    
+                    const intensidad = 0.15 + Math.sin(tiempo * 1.2 + ud.fase + scrollFactor) * 0.15 + 0.15;
+                    obj.material.emissiveIntensity = intensidad;
+                });
+                
+                particulas.rotation.y += 0.002 + scrollFactor * 0.001;
+                particulas.rotation.x += 0.001 + scrollFactor * 0.0005;
+                
+                const targetY = 2 - scrollFactor * 1.2;
+                camera.position.y += (targetY - camera.position.y) * 0.02;
+                camera.position.z = 14 + scrollFactor * 0.3;
+                camera.lookAt(0, -scrollFactor * 0.2, 0);
+                
+                renderer.render(scene, camera);
+            }
+            
+            animar();
+
+            window.addEventListener('scroll', () => {
+                scrollY = window.scrollY;
+            });
+
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+        })();
+
+        // ============================================================
+        // 2. MENÚ
+        // ============================================================
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            closeMenu();
+        }
+        
+        function scrollToSection(id) {
+            const el = document.getElementById(id);
+            if (el) {
+                el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+            closeMenu();
+        }
+        
+        function toggleMenu() {
+            const items = document.getElementById('menuItems');
+            items.classList.toggle('open');
+        }
+        
+        function closeMenu() {
+            document.getElementById('menuItems').classList.remove('open');
+        }
+
+        document.addEventListener('scroll', () => {
+            const sections = ['inicio', 'quienes-somos', 'productos', 'trabajos', 'contacto'];
+            let current = 'inicio';
+            
+            sections.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    const rect = el.getBoundingClientRect();
+                    if (rect.top <= 100) {
+                        current = id;
+                    }
+                }
+            });
+            
+            document.querySelectorAll('.menu-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.getAttribute('href') === '#' + current) {
+                    item.classList.add('active');
+                }
+            });
+            
+            const nav = document.getElementById('menuNav');
+            if (window.scrollY > 50) {
+                nav.classList.add('scrolled');
+            } else {
+                nav.classList.remove('scrolled');
+            }
+        });
+
+        // ============================================================
+        // 3. BOTÓN FLOTANTE
+        // ============================================================
+        (function initTimbreFlotante() {
+            const timbre = document.getElementById('timbreFlotante');
+            let isDragging = false;
+            let startX, startY, origX, origY;
+            let isClick = true;
+            let hasMoved = false;
+            
+            function onStart(e) {
+                isDragging = true;
+                hasMoved = false;
+                isClick = true;
+                const touch = e.touches ? e.touches[0] : e;
+                startX = touch.clientX;
+                startY = touch.clientY;
+                origX = timbre.offsetLeft;
+                origY = timbre.offsetTop;
+                timbre.style.cursor = 'grabbing';
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            
+            function onMove(e) {
+                if (!isDragging) return;
+                const touch = e.touches ? e.touches[0] : e;
+                const dx = touch.clientX - startX;
+                const dy = touch.clientY - startY;
+                
+                if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+                    isClick = false;
+                    hasMoved = true;
+                }
+                
+                let newX = origX + dx;
+                let newY = origY + dy;
+                
+                const maxX = window.innerWidth - timbre.offsetWidth - 10;
+                const maxY = window.innerHeight - timbre.offsetHeight - 10;
+                newX = Math.max(10, Math.min(newX, maxX));
+                newY = Math.max(10, Math.min(newY, maxY));
+                
+                timbre.style.left = newX + 'px';
+                timbre.style.top = newY + 'px';
+                timbre.style.right = 'auto';
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            
+            function onEnd(e) {
+                isDragging = false;
+                timbre.style.cursor = 'grab';
+                
+                if (isClick && !hasMoved) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    tocarTimbreSolo();
+                }
+                isClick = false;
+                hasMoved = false;
+            }
+            
+            timbre.addEventListener('mousedown', function(e) {
+                e.stopPropagation();
+            });
+            
+            timbre.addEventListener('click', function(e) {
+                if (!hasMoved) {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    tocarTimbreSolo();
+                }
+                hasMoved = false;
+            });
+            
+            timbre.addEventListener('mousedown', onStart);
+            document.addEventListener('mousemove', onMove);
+            document.addEventListener('mouseup', onEnd);
+            
+            timbre.addEventListener('touchstart', onStart, { passive: false });
+            document.addEventListener('touchmove', onMove, { passive: false });
+            document.addEventListener('touchend', onEnd, { passive: false });
+            
+            timbre.addEventListener('pointerdown', function(e) {
+                e.stopPropagation();
+            });
+        })();
+
+        // ============================================================
+        // 4. SLIDER
+        // ============================================================
+        let slideActual = 0;
+        const totalSlides = 4;
+
+        function actualizarSlider() {
+            const track = document.getElementById('sliderTrack');
+            const dots = document.querySelectorAll('.slider-dot');
+            
+            track.style.transform = `translateX(-${slideActual * 100}%)`;
+            
+            dots.forEach((dot, index) => {
+                dot.classList.toggle('active', index === slideActual);
+            });
+        }
+
+        function cambiarSlide(direccion) {
+            slideActual = (slideActual + direccion + totalSlides) % totalSlides;
+            actualizarSlider();
+        }
+
+        function irSlide(index) {
+            slideActual = index;
+            actualizarSlider();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const dotsContainer = document.getElementById('sliderDots');
+            for (let i = 0; i < totalSlides; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'slider-dot' + (i === 0 ? ' active' : '');
+                dot.onclick = () => irSlide(i);
+                dotsContainer.appendChild(dot);
+            }
+            
+            setInterval(() => {
+                cambiarSlide(1);
+            }, 4000);
+        });
+
+        // ============================================================
+        // 5. VIDEO
+        // ============================================================
+        function reproducirVideo() {
+            const video = document.getElementById('videoInformativo');
+            const btn = document.querySelector('.play-btn');
+            
+            if (video.paused) {
+                video.play();
+                btn.innerHTML = '<i class="fas fa-pause"></i>';
+            } else {
+                video.pause();
+                btn.innerHTML = '<i class="fas fa-play"></i>';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const video = document.getElementById('videoInformativo');
+            if (video) {
+                video.addEventListener('ended', () => {
+                    const btn = document.querySelector('.play-btn');
+                    btn.innerHTML = '<i class="fas fa-play"></i>';
+                });
+            }
+        });
+
+        // ============================================================
+        // 6. FIREBASE
+        // ============================================================
         const firebaseConfig = { databaseURL: "https://rs-art-timbre-default-rtdb.firebaseio.com/" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
@@ -279,14 +1608,663 @@
         let productosData = [];
         let seccionesData = [];
         let configPagos = { movil: '', banco: '', efectivo: '', puntoventa: '' };
-        let configExito = { mensaje: '¡GRACIAS POR ELEGIR RS ART!', imagen: '', tasa: 36, whatsapp: '584123456789' };
+        let configExito = { mensaje: '¡GRACIAS POR ELEGIR RS ART!', imagen: '', tasa: 36, whatsapp: '584123456789', email: 'rsartstudio@email.com', videoUrl: '' };
+        let contenidoSitio = { 
+            textoInicio: '', 
+            textoTrabajos: '', 
+            textoAnimadoTrabajos: '',
+            contactoEmail: '',
+            textoQuienes: '',
+            imagenQuienes1: '',
+            imagenQuienes2: '',
+            imagenQuienes3: '',
+            imagenQuienes4: ''
+        };
         
         let tasaCambio = 36;
         let numeroWhatsApp = '584123456789';
+        let emailNotificacion = 'rsartstudio@email.com';
 
-        new Swiper(".mySwiper", { loop: true, pagination: { el: ".swiper-pagination" }, autoplay: { delay: 4000 } });
+        // ============================================================
+        // 7. CAJA REGISTRADORA
+        // ============================================================
+        let ticketProductos = [];
+        let productosCaja = [];
 
-        // Cargar configuraciones
+        function cargarProductosCaja() {
+            const select = document.getElementById('select-producto-caja');
+            productosCaja = productosData;
+            
+            select.innerHTML = '<option value="">-- Seleccionar Producto --</option>';
+            productosData.forEach(p => {
+                const option = document.createElement('option');
+                option.value = p.key;
+                option.textContent = `${p.nombre} - $${parseFloat(p.precio).toFixed(2)} (Stock: ${p.stock || 0})`;
+                option.dataset.precio = p.precio;
+                option.dataset.nombre = p.nombre;
+                option.dataset.stock = p.stock || 0;
+                select.appendChild(option);
+            });
+        }
+
+        function filtrarProductosBusqueda(texto) {
+            const select = document.getElementById('select-producto-caja');
+            const filtro = texto.toLowerCase().trim();
+            
+            select.innerHTML = '<option value="">-- Seleccionar Producto --</option>';
+            
+            const productosFiltrados = productosCaja.filter(p => 
+                p.nombre.toLowerCase().includes(filtro)
+            );
+            
+            productosFiltrados.forEach(p => {
+                const option = document.createElement('option');
+                option.value = p.key;
+                option.textContent = `${p.nombre} - $${parseFloat(p.precio).toFixed(2)} (Stock: ${p.stock || 0})`;
+                option.dataset.precio = p.precio;
+                option.dataset.nombre = p.nombre;
+                option.dataset.stock = p.stock || 0;
+                select.appendChild(option);
+            });
+        }
+
+        function seleccionarProductoCaja() {
+            const select = document.getElementById('select-producto-caja');
+            const selected = select.options[select.selectedIndex];
+            
+            if (selected && selected.value) {
+                document.getElementById('precio-producto-caja').value = `$${parseFloat(selected.dataset.precio).toFixed(2)} USD`;
+                const stock = parseInt(selected.dataset.stock) || 0;
+                document.getElementById('cantidad-producto-caja').max = stock;
+                if (stock > 0) {
+                    document.getElementById('cantidad-producto-caja').value = 1;
+                }
+            } else {
+                document.getElementById('precio-producto-caja').value = '';
+            }
+        }
+
+        function agregarProductoCaja() {
+            const select = document.getElementById('select-producto-caja');
+            const selected = select.options[select.selectedIndex];
+            
+            if (!selected || !selected.value) {
+                Swal.fire('Error', 'Selecciona un producto primero', 'warning');
+                return;
+            }
+            
+            const cantidad = parseInt(document.getElementById('cantidad-producto-caja').value) || 1;
+            const stock = parseInt(selected.dataset.stock) || 0;
+            
+            if (cantidad > stock) {
+                Swal.fire('Error', `Solo hay ${stock} unidades disponibles`, 'warning');
+                return;
+            }
+            
+            const existe = ticketProductos.find(p => p.key === selected.value);
+            if (existe) {
+                if (existe.cantidad + cantidad > stock) {
+                    Swal.fire('Error', `Solo hay ${stock} unidades disponibles`, 'warning');
+                    return;
+                }
+                existe.cantidad += cantidad;
+            } else {
+                ticketProductos.push({
+                    key: selected.value,
+                    nombre: selected.dataset.nombre,
+                    precio: parseFloat(selected.dataset.precio),
+                    cantidad: cantidad,
+                    stock: stock
+                });
+            }
+            
+            actualizarTicketCaja();
+            document.getElementById('cantidad-producto-caja').value = 1;
+        }
+
+        function actualizarTicketCaja() {
+            const container = document.getElementById('ticket-productos');
+            let subtotalUSD = 0;
+            
+            if (ticketProductos.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-center">No hay productos agregados</p>';
+                document.getElementById('subtotal-usd-caja').textContent = '$0.00';
+                document.getElementById('subtotal-bs-caja').textContent = 'Bs 0.00';
+                return;
+            }
+            
+            container.innerHTML = ticketProductos.map((p, i) => {
+                const total = p.precio * p.cantidad;
+                subtotalUSD += total;
+                return `
+                    <div class="flex justify-between items-center border-b border-white/5 py-2">
+                        <span class="font-bold truncate max-w-[120px]">${p.nombre}</span>
+                        <span class="text-gray-400">x${p.cantidad}</span>
+                        <span class="text-[var(--lime)]">$${total.toFixed(2)}</span>
+                        <button onclick="eliminarProductoTicket(${i})" class="text-red-500 hover:text-red-400 text-xs">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                `;
+            }).join('');
+            
+            const tasa = parseFloat(document.getElementById('conf-tasa').value) || tasaCambio;
+            const subtotalBs = subtotalUSD * tasa;
+            
+            document.getElementById('subtotal-usd-caja').textContent = `$${subtotalUSD.toFixed(2)}`;
+            document.getElementById('subtotal-bs-caja').textContent = `Bs ${subtotalBs.toFixed(2)}`;
+        }
+
+        function eliminarProductoTicket(index) {
+            ticketProductos.splice(index, 1);
+            actualizarTicketCaja();
+        }
+
+        function limpiarTicketCaja() {
+            ticketProductos = [];
+            actualizarTicketCaja();
+            document.getElementById('cliente-caja').value = '';
+            document.getElementById('telefono-caja').value = '';
+            document.getElementById('buscar-producto').value = '';
+            document.getElementById('select-producto-caja').value = '';
+            document.getElementById('precio-producto-caja').value = '';
+        }
+
+        // ============================================================
+        // 8. REGISTRAR VENTA EN CAJA (CORREGIDO - ACTUALIZA VENTAS DEL DÍA)
+        // ============================================================
+        async function registrarVentaCaja() {
+            if (ticketProductos.length === 0) {
+                Swal.fire('Error', 'Agrega productos al ticket primero', 'warning');
+                return;
+            }
+            
+            const cliente = document.getElementById('cliente-caja').value.trim() || 'Cliente sin nombre';
+            const telefono = document.getElementById('telefono-caja').value.trim() || numeroWhatsApp;
+            const tasa = parseFloat(document.getElementById('conf-tasa').value) || tasaCambio;
+            
+            let totalUSD = 0;
+            ticketProductos.forEach(p => {
+                totalUSD += p.precio * p.cantidad;
+            });
+            const totalBs = totalUSD * tasa;
+            
+            const pedido = {
+                items: ticketProductos.map(p => ({ 
+                    nombre: p.nombre, 
+                    cantidad: p.cantidad, 
+                    precioUSD: p.precio 
+                })),
+                totalUSD: totalUSD,
+                totalBs: totalBs,
+                metodo: 'CAJA REGISTRADORA',
+                tel: telefono,
+                ref: 'CAJA-' + Date.now(),
+                nombre: cliente,
+                obs: 'Venta registrada desde caja',
+                fecha: new Date().toLocaleString(),
+                status: 'verde',
+                tasa: tasa
+            };
+            
+            // Guardar en Firebase
+            await db.ref('pedidos').push(pedido);
+            
+            // Actualizar stock
+            for (const item of ticketProductos) {
+                const prodRef = db.ref(`productos/${item.key}/stock`);
+                await prodRef.transaction((currentStock) => (currentStock || 0) - item.cantidad);
+            }
+            
+            // Enviar factura al WhatsApp del cliente
+            const facturaTexto = `📋 *FACTURA RS ART STUDIO - CAJA*\n\n` +
+                `👤 *Cliente:* ${cliente}\n` +
+                `📅 *Fecha:* ${new Date().toLocaleString()}\n` +
+                `━━━━━━━━━━━━━━━━━━━━\n` +
+                `*DETALLE DEL PEDIDO:*\n` +
+                ticketProductos.map(p => `   ${p.nombre} x${p.cantidad} = $${(p.precio * p.cantidad).toFixed(2)} USD`).join('\n') +
+                `\n━━━━━━━━━━━━━━━━━━━━\n` +
+                `💰 *TOTAL:* $${totalUSD.toFixed(2)} USD\n` +
+                `🇻🇪 *Total Bs:* Bs. ${totalBs.toFixed(2)}\n` +
+                `💵 *Tasa:* Bs ${tasa}/USD\n` +
+                `━━━━━━━━━━━━━━━━━━━━\n` +
+                `✨ *¡Gracias por tu compra!* ✨\n` +
+                `🔔 *RS ART STUDIO*`;
+            
+            const mensajeCodificado = encodeURIComponent(facturaTexto);
+            window.open(`https://wa.me/${telefono}?text=${mensajeCodificado}`, '_blank');
+            
+            // También enviar al número del negocio
+            const negocioMsg = `📊 *VENTA REGISTRADA EN CAJA*\n\n` +
+                `👤 *Cliente:* ${cliente}\n` +
+                `📱 *Teléfono:* ${telefono}\n` +
+                `💰 *Total:* $${totalUSD.toFixed(2)} USD | Bs ${totalBs.toFixed(2)}\n` +
+                `📅 *Fecha:* ${new Date().toLocaleString()}\n` +
+                `📦 *Productos:* ${ticketProductos.map(p => p.nombre + ' x' + p.cantidad).join(', ')}`;
+            
+            const negocioMsgEnc = encodeURIComponent(negocioMsg);
+            window.open(`https://wa.me/${numeroWhatsApp}?text=${negocioMsgEnc}`, '_blank');
+            
+            db.ref('alarma_evento').set({ 
+                id: Math.random(), 
+                tipo: "VENTA CAJA", 
+                info: `$${totalUSD.toFixed(2)} USD (${cliente})`, 
+                timestamp: Date.now() 
+            });
+            
+            Swal.fire({
+                title: '✅ Venta Registrada',
+                html: `
+                    <p class="text-[var(--lime)] font-bold text-lg">$${totalUSD.toFixed(2)} USD</p>
+                    <p class="text-[var(--magenta)] font-bold">Bs ${totalBs.toFixed(2)}</p>
+                    <p class="text-xs text-gray-400">Cliente: ${cliente}</p>
+                    <p class="text-xs text-gray-400">Factura enviada a WhatsApp</p>
+                `,
+                background: '#0F091A',
+                color: '#fff',
+                confirmButtonColor: '#E91E63',
+                timer: 3000,
+                timerProgressBar: true
+            });
+            
+            limpiarTicketCaja();
+            
+            // 🔥 ACTUALIZAR VENTAS DEL DÍA INMEDIATAMENTE 🔥
+            setTimeout(() => {
+                calcularVentasDia();
+            }, 500);
+            
+            // También recargar productos para actualizar stock
+            setTimeout(() => {
+                db.ref('productos').once('value');
+            }, 1000);
+        }
+
+        // ============================================================
+        // 9. EDITAR PRODUCTOS
+        // ============================================================
+        function editarProducto(key) {
+            const prod = productosData.find(p => p.key === key);
+            if (!prod) return;
+            
+            Swal.fire({
+                title: '✏️ Editar Producto',
+                html: `
+                    <div class="text-left space-y-3">
+                        <div>
+                            <label class="text-xs text-gray-400 uppercase">Nombre</label>
+                            <input id="edit-nombre" value="${prod.nombre}" class="premium-input w-full p-3 rounded-xl outline-none">
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-400 uppercase">Precio (USD)</label>
+                            <input id="edit-precio" type="number" step="0.01" value="${prod.precio}" class="premium-input w-full p-3 rounded-xl outline-none">
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-400 uppercase">Stock</label>
+                            <input id="edit-stock" type="number" value="${prod.stock || 0}" class="premium-input w-full p-3 rounded-xl outline-none">
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-400 uppercase">Descripción</label>
+                            <textarea id="edit-descripcion" class="premium-input w-full p-3 rounded-xl outline-none h-24">${prod.descripcion || ''}</textarea>
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-400 uppercase">Cambiar Imagen</label>
+                            <input type="file" id="edit-imagen" onchange="convertirBase64Edit(this)" class="text-[10px] text-gray-500">
+                            <input type="hidden" id="edit-img-data">
+                            <div class="mt-2">
+                                <img src="${prod.img1}" class="w-20 h-20 object-cover rounded-lg border border-white/10">
+                            </div>
+                        </div>
+                    </div>
+                `,
+                background: '#0F091A',
+                color: '#fff',
+                confirmButtonText: 'GUARDAR CAMBIOS',
+                confirmButtonColor: '#C6FF00',
+                cancelButtonText: 'CANCELAR',
+                cancelButtonColor: '#666',
+                showCancelButton: true,
+                customClass: {
+                    popup: 'rounded-3xl border border-[var(--lime)]/30',
+                    confirmButton: 'text-black font-bold px-6 py-3 rounded-xl',
+                    cancelButton: 'text-white font-bold px-6 py-3 rounded-xl'
+                },
+                preConfirm: () => {
+                    const nombre = document.getElementById('edit-nombre').value;
+                    const precio = parseFloat(document.getElementById('edit-precio').value);
+                    const stock = parseInt(document.getElementById('edit-stock').value) || 0;
+                    const descripcion = document.getElementById('edit-descripcion').value;
+                    const imgData = document.getElementById('edit-img-data').value;
+                    
+                    if (!nombre || !precio || precio <= 0) {
+                        Swal.showValidationMessage('Nombre y precio son requeridos');
+                        return false;
+                    }
+                    
+                    return { nombre, precio, stock, descripcion, imgData };
+                }
+            }).then(result => {
+                if (result.isConfirmed && result.value) {
+                    const data = result.value;
+                    const updates = {
+                        nombre: data.nombre,
+                        precio: data.precio,
+                        stock: data.stock,
+                        descripcion: data.descripcion
+                    };
+                    if (data.imgData) {
+                        updates.img1 = data.imgData;
+                    }
+                    
+                    db.ref('productos/' + key).update(updates);
+                    Swal.fire('✅ Actualizado', 'Producto actualizado correctamente', 'success');
+                }
+            });
+        }
+
+        function convertirBase64Edit(input) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                document.getElementById('edit-img-data').value = reader.result;
+            };
+            if (input.files[0]) reader.readAsDataURL(input.files[0]);
+        }
+
+        // ============================================================
+        // 10. CONTROL DE VENTAS DEL DÍA (ACTUALIZACIÓN EN TIEMPO REAL)
+        // ============================================================
+        function calcularVentasDia() {
+            const hoy = new Date().toLocaleDateString();
+            let totalCompras = 0;
+            let totalUSD = 0;
+            let totalBs = 0;
+            const ventas = [];
+
+            db.ref('pedidos').once('value', snap => {
+                snap.forEach(child => {
+                    const ped = child.val();
+                    if (ped.fecha) {
+                        const fechaPed = new Date(ped.fecha);
+                        const fechaStr = fechaPed.toLocaleDateString();
+                        
+                        if (fechaStr === hoy) {
+                            totalCompras++;
+                            totalUSD += ped.totalUSD || 0;
+                            totalBs += ped.totalBs || 0;
+                            
+                            ventas.push({
+                                fecha: fechaStr,
+                                hora: fechaPed.toLocaleTimeString(),
+                                cliente: ped.nombre || 'Anónimo',
+                                productos: ped.items ? ped.items.map(i => i.nombre + ' (x' + i.cantidad + ')').join(', ') : 'Sin productos',
+                                totalUSD: ped.totalUSD || 0,
+                                totalBs: ped.totalBs || 0
+                            });
+                        }
+                    }
+                });
+
+                // Actualizar totales
+                document.getElementById('total-compras-dia').textContent = totalCompras;
+                document.getElementById('total-usd-dia').textContent = '$' + totalUSD.toFixed(2);
+                document.getElementById('total-bs-dia').textContent = 'Bs ' + totalBs.toFixed(2);
+
+                // Actualizar tabla
+                const tbody = document.getElementById('tabla-ventas-body');
+                if (ventas.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-gray-500 py-4">No hay ventas registradas hoy</td></tr>';
+                } else {
+                    // Ordenar por hora (más reciente primero)
+                    ventas.sort((a, b) => {
+                        if (a.hora < b.hora) return 1;
+                        if (a.hora > b.hora) return -1;
+                        return 0;
+                    });
+                    
+                    tbody.innerHTML = ventas.map(v => `
+                        <tr class="border-b border-white/5 hover:bg-white/5 transition">
+                            <td class="py-2 px-3">${v.fecha}</td>
+                            <td class="py-2 px-3">${v.hora}</td>
+                            <td class="py-2 px-3 font-bold text-[var(--lime)]">${v.cliente}</td>
+                            <td class="py-2 px-3 text-xs">${v.productos}</td>
+                            <td class="py-2 px-3 text-[var(--lime)] font-bold">$${v.totalUSD.toFixed(2)}</td>
+                            <td class="py-2 px-3 text-[var(--magenta)] font-bold">Bs ${v.totalBs.toFixed(2)}</td>
+                        </tr>
+                    `).join('');
+                }
+            });
+        }
+
+        // ============================================================
+        // 11. ESCUCHAR PEDIDOS EN TIEMPO REAL
+        // ============================================================
+        function escucharPedidos() {
+            db.ref('pedidos').on('value', snap => {
+                const list = document.getElementById('lista-pedidos');
+                list.innerHTML = "";
+                let peds = [];
+                
+                snap.forEach(child => { 
+                    let p = child.val(); 
+                    p.key = child.key; 
+                    peds.push(p); 
+                });
+                
+                const orden = { 'rojo': 1, 'amarillo': 2, 'verde': 3 };
+                peds.sort((a, b) => orden[a.status] - orden[b.status]);
+
+                peds.forEach(ped => {
+                    list.innerHTML += `
+                        <div class="bg-black/60 p-4 md:p-6 rounded-2xl md:rounded-3xl status-${ped.status} animate__animated animate__fadeInRight">
+                            <div class="flex justify-between items-start mb-2 md:mb-4">
+                                <div>
+                                    <span class="font-black text-[var(--lime)] text-sm md:text-xl italic">$${ped.totalUSD.toLocaleString('de-DE')} USD</span>
+                                    <span class="text-xs text-gray-400 ml-2">(Bs. ${ped.totalBs.toLocaleString('de-DE')})</span>
+                                </div>
+                                <button onclick="borrarPedidoIndividual('${ped.key}')" class="w-8 h-8 md:w-10 md:h-10 bg-white/5 rounded-lg text-green-500 hover:bg-green-500 hover:text-white transition-all flex items-center justify-center text-xs"><i class="fas fa-check"></i></button>
+                            </div>
+                            <div class="space-y-1 text-[10px] md:text-xs">
+                                <p><b class="text-gray-500 uppercase">Cliente:</b> ${ped.nombre || 'Anónimo'}</p>
+                                <p><b class="text-gray-500 uppercase">Items:</b> ${ped.items ? ped.items.map(i => i.nombre + ' (x'+i.cantidad+')').join(', ') : 'Sin items'}</p>
+                                <p><b class="text-gray-500 uppercase">Pago:</b> ${ped.metodo} | ${ped.tel}</p>
+                                <p><b class="text-gray-500 uppercase">Ref:</b> <span class="text-white">${ped.ref}</span></p>
+                                <p><b class="text-gray-500 uppercase">Entrega:</b> ${ped.status === 'rojo' ? 'URGENTE' : ped.status === 'amarillo' ? 'MEDIANO' : 'LARGO'}</p>
+                                <p class="text-[8px] text-gray-600 mt-2">${ped.fecha}</p>
+                            </div>
+                        </div>`;
+                });
+                
+                // 🔥 ACTUALIZAR VENTAS DEL DÍA EN TIEMPO REAL 🔥
+                calcularVentasDia();
+            });
+        }
+
+        // ============================================================
+        // 12. EXPORTAR EXCEL
+        // ============================================================
+        function exportarExcelDia() {
+            const hoy = new Date().toLocaleDateString();
+            const data = [];
+            
+            const filas = document.querySelectorAll('#tabla-ventas-body tr');
+            filas.forEach(fila => {
+                const celdas = fila.querySelectorAll('td');
+                if (celdas.length === 6 && celdas[0].textContent !== 'No hay ventas registradas hoy') {
+                    data.push({
+                        'Fecha': celdas[0].textContent,
+                        'Hora': celdas[1].textContent,
+                        'Cliente': celdas[2].textContent,
+                        'Productos': celdas[3].textContent,
+                        'Total USD': parseFloat(celdas[4].textContent.replace('$', '')) || 0,
+                        'Total Bs': parseFloat(celdas[5].textContent.replace('Bs ', '')) || 0
+                    });
+                }
+            });
+
+            if (data.length === 0) {
+                Swal.fire('Sin ventas', 'No hay ventas registradas hoy', 'info');
+                return;
+            }
+
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.json_to_sheet(data);
+            
+            ws['!cols'] = [
+                { wch: 15 }, { wch: 12 }, { wch: 20 }, 
+                { wch: 40 }, { wch: 15 }, { wch: 18 }
+            ];
+            
+            XLSX.utils.book_append_sheet(wb, ws, 'Ventas');
+            XLSX.writeFile(wb, `Ventas_${hoy.replace(/\//g, '-')}.xlsx`);
+            
+            Swal.fire('Éxito', 'Archivo Excel exportado correctamente', 'success');
+        }
+
+        // ============================================================
+        // 13. ENVIAR WHATSAPP
+        // ============================================================
+        function enviarWhatsAppDia() {
+            const hoy = new Date().toLocaleDateString();
+            const filas = document.querySelectorAll('#tabla-ventas-body tr');
+            let mensaje = `📊 *REPORTE DE VENTAS - ${hoy}*\n\n`;
+            mensaje += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+            mensaje += `📋 *RESUMEN DEL DÍA*\n`;
+            mensaje += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+            
+            let totalUSD = 0;
+            let totalBs = 0;
+            let count = 0;
+            
+            filas.forEach(fila => {
+                const celdas = fila.querySelectorAll('td');
+                if (celdas.length === 6 && celdas[0].textContent !== 'No hay ventas registradas hoy') {
+                    count++;
+                    const usd = parseFloat(celdas[4].textContent.replace('$', '')) || 0;
+                    const bs = parseFloat(celdas[5].textContent.replace('Bs ', '')) || 0;
+                    totalUSD += usd;
+                    totalBs += bs;
+                    
+                    mensaje += `\n👤 *Cliente:* ${celdas[2].textContent}\n`;
+                    mensaje += `🕐 *Hora:* ${celdas[1].textContent}\n`;
+                    mensaje += `📦 *Productos:* ${celdas[3].textContent}\n`;
+                    mensaje += `💰 *Total:* $${usd.toFixed(2)} USD | Bs ${bs.toFixed(2)}\n`;
+                    mensaje += `────────────────────────────────────\n`;
+                }
+            });
+
+            if (count === 0) {
+                Swal.fire('Sin ventas', 'No hay ventas registradas hoy', 'info');
+                return;
+            }
+
+            mensaje += `\n📊 *TOTALES DEL DÍA*\n`;
+            mensaje += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+            mensaje += `📌 *Compras:* ${count}\n`;
+            mensaje += `💵 *Total USD:* $${totalUSD.toFixed(2)}\n`;
+            mensaje += `🇻🇪 *Total Bs:* Bs ${totalBs.toFixed(2)}\n`;
+            mensaje += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+            mensaje += `✨ *RS ART STUDIO* ✨`;
+
+            const mensajeCodificado = encodeURIComponent(mensaje);
+            window.open(`https://wa.me/${numeroWhatsApp}?text=${mensajeCodificado}`, '_blank');
+        }
+
+        // ============================================================
+        // 14. CONTENIDO DEL SITIO
+        // ============================================================
+        function actualizarContenidoSitio() {
+            if (contenidoSitio.textoInicio) {
+                document.getElementById('texto-inicio').innerHTML = contenidoSitio.textoInicio;
+            }
+            if (contenidoSitio.textoTrabajos) {
+                document.getElementById('texto-trabajos').innerHTML = contenidoSitio.textoTrabajos;
+            }
+            if (contenidoSitio.textoAnimadoTrabajos) {
+                document.getElementById('texto-trabajos-animado').textContent = contenidoSitio.textoAnimadoTrabajos;
+            }
+            if (contenidoSitio.contactoEmail) {
+                document.getElementById('contacto-email').textContent = contenidoSitio.contactoEmail;
+            }
+            if (contenidoSitio.textoQuienes) {
+                document.getElementById('quienes-somos-texto').innerHTML = contenidoSitio.textoQuienes;
+            }
+            
+            const img1 = document.getElementById('quienes-img-1');
+            const img2 = document.getElementById('quienes-img-2');
+            const img3 = document.getElementById('quienes-img-3');
+            const img4 = document.getElementById('quienes-img-4');
+            
+            if (contenidoSitio.imagenQuienes1 && img1) img1.src = contenidoSitio.imagenQuienes1;
+            if (contenidoSitio.imagenQuienes2 && img2) img2.src = contenidoSitio.imagenQuienes2;
+            if (contenidoSitio.imagenQuienes3 && img3) img3.src = contenidoSitio.imagenQuienes3;
+            if (contenidoSitio.imagenQuienes4 && img4) img4.src = contenidoSitio.imagenQuienes4;
+        }
+
+        function guardarContenidoSitio() {
+            const nuevoContenido = {
+                textoInicio: document.getElementById('conf-texto-inicio').value,
+                textoTrabajos: document.getElementById('conf-texto-trabajos').value,
+                textoAnimadoTrabajos: document.getElementById('conf-texto-trabajos-animado').value,
+                contactoEmail: document.getElementById('conf-contacto-email').value,
+                textoQuienes: document.getElementById('conf-texto-quienes').value,
+                imagenQuienes1: document.getElementById('adm-quienes-img-1')?.value || contenidoSitio.imagenQuienes1,
+                imagenQuienes2: document.getElementById('adm-quienes-img-2')?.value || contenidoSitio.imagenQuienes2,
+                imagenQuienes3: document.getElementById('adm-quienes-img-3')?.value || contenidoSitio.imagenQuienes3,
+                imagenQuienes4: document.getElementById('adm-quienes-img-4')?.value || contenidoSitio.imagenQuienes4
+            };
+            db.ref('configuracion/contenido').set(nuevoContenido);
+            Swal.fire("Éxito", "Contenido del sitio actualizado", "success");
+        }
+
+        // ============================================================
+        // 15. CONVERTIR BASE64
+        // ============================================================
+        function convertirBase64Multiple(input, targetId) {
+            const files = input.files;
+            const previewContainer = document.getElementById('preview-quienes-imgs');
+            previewContainer.innerHTML = '';
+            
+            Array.from(files).forEach((file, index) => {
+                if (index >= 4) return;
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    const imgId = 'adm-' + targetId + '-' + (index + 1);
+                    let existingInput = document.getElementById(imgId);
+                    if (!existingInput) {
+                        const newInput = document.createElement('input');
+                        newInput.type = 'hidden';
+                        newInput.id = imgId;
+                        newInput.value = reader.result;
+                        document.body.appendChild(newInput);
+                    } else {
+                        existingInput.value = reader.result;
+                    }
+                    
+                    const imgPreview = document.createElement('img');
+                    imgPreview.src = reader.result;
+                    imgPreview.className = 'w-full h-20 object-cover rounded-lg border border-white/10';
+                    previewContainer.appendChild(imgPreview);
+                    
+                    const imgElement = document.getElementById('quienes-img-' + (index + 1));
+                    if (imgElement) {
+                        imgElement.src = reader.result;
+                    }
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function convertirBase64(input, targetId) {
+            const reader = new FileReader();
+            reader.onloadend = () => { 
+                document.getElementById('adm-' + targetId).value = reader.result;
+            };
+            if (input.files[0]) reader.readAsDataURL(input.files[0]);
+        }
+
+        // ============================================================
+        // 16. CONFIGURACIONES FIREBASE
+        // ============================================================
         db.ref('configuracion').on('value', snap => {
             const data = snap.val();
             if(data) {
@@ -295,6 +2273,22 @@
                     configExito = data.exito;
                     tasaCambio = data.exito.tasa || 36;
                     numeroWhatsApp = data.exito.whatsapp || '584123456789';
+                    emailNotificacion = data.exito.email || 'rsartstudio@email.com';
+                    
+                    if (data.exito.videoUrl) {
+                        const video = document.getElementById('videoInformativo');
+                        if (video) {
+                            const source = video.querySelector('source');
+                            if (source) {
+                                source.src = data.exito.videoUrl;
+                                video.load();
+                            }
+                        }
+                    }
+                }
+                if(data.contenido) {
+                    contenidoSitio = data.contenido;
+                    actualizarContenidoSitio();
                 }
                 document.getElementById('conf-pago-movil').value = configPagos.movil || '';
                 document.getElementById('conf-transferencia').value = configPagos.banco || '';
@@ -303,10 +2297,67 @@
                 document.getElementById('conf-exito-msg').value = configExito.mensaje;
                 document.getElementById('conf-tasa').value = tasaCambio;
                 document.getElementById('conf-whatsapp').value = numeroWhatsApp;
+                document.getElementById('conf-email').value = emailNotificacion;
+                document.getElementById('conf-video-url').value = configExito.videoUrl || '';
+                document.getElementById('conf-texto-inicio').value = contenidoSitio.textoInicio || '';
+                document.getElementById('conf-texto-trabajos').value = contenidoSitio.textoTrabajos || '';
+                document.getElementById('conf-texto-trabajos-animado').value = contenidoSitio.textoAnimadoTrabajos || '';
+                document.getElementById('conf-contacto-email').value = contenidoSitio.contactoEmail || '';
+                document.getElementById('conf-texto-quienes').value = contenidoSitio.textoQuienes || '';
             }
         });
 
-        // Cargar secciones
+        function guardarConfigPagos() {
+            db.ref('configuracion/pagos').set({
+                movil: document.getElementById('conf-pago-movil').value,
+                banco: document.getElementById('conf-transferencia').value,
+                efectivo: document.getElementById('conf-efectivo').value,
+                puntoventa: document.getElementById('conf-puntoventa').value
+            });
+            Swal.fire("Éxito", "Métodos de pago actualizados", "success");
+        }
+
+        function guardarConfigExito() {
+            const nuevaTasa = parseFloat(document.getElementById('conf-tasa').value);
+            if(nuevaTasa && nuevaTasa > 0) tasaCambio = nuevaTasa;
+            const nuevoWhatsApp = document.getElementById('conf-whatsapp').value;
+            if(nuevoWhatsApp) numeroWhatsApp = nuevoWhatsApp;
+            const nuevoEmail = document.getElementById('conf-email').value;
+            if(nuevoEmail) emailNotificacion = nuevoEmail;
+            const nuevoVideoUrl = document.getElementById('conf-video-url').value;
+            
+            db.ref('configuracion/exito').set({
+                mensaje: document.getElementById('conf-exito-msg').value,
+                imagen: document.getElementById('adm-exito-img').value,
+                tasa: tasaCambio,
+                whatsapp: numeroWhatsApp,
+                email: emailNotificacion,
+                videoUrl: nuevoVideoUrl
+            });
+            
+            if (nuevoVideoUrl) {
+                const video = document.getElementById('videoInformativo');
+                if (video) {
+                    const source = video.querySelector('source');
+                    if (source) {
+                        source.src = nuevoVideoUrl;
+                        video.load();
+                    }
+                }
+            }
+            
+            Swal.fire("Éxito", "Configuración guardada", "success");
+        }
+
+        db.ref('.info/connected').on('value', snap => {
+            const s = document.getElementById('status-fb');
+            s.innerText = snap.val() ? "SISTEMA ONLINE" : "OFFLINE";
+            s.className = snap.val() ? "text-[8px] md:text-[10px] font-bold px-3 py-1 md:px-4 md:py-2 bg-lime-500/10 rounded-full text-lime-400 border border-lime-500/20" : "text-[8px] md:text-[10px] font-bold px-3 py-1 md:px-4 md:py-2 bg-red-500/10 rounded-full text-red-400 border border-red-500/20";
+        });
+
+        // ============================================================
+        // 17. SECCIONES Y PRODUCTOS
+        // ============================================================
         db.ref('secciones').on('value', snap => {
             seccionesData = [];
             const select = document.getElementById('adm-seccion-select');
@@ -327,12 +2378,13 @@
                 `;
             });
             renderizarTodo();
+            cargarProductosCaja();
         });
 
         function eliminarSeccion(key) {
             Swal.fire({
                 title: '¿Eliminar sección?',
-                text: 'Los productos dentro de esta sección también serán eliminados',
+                text: 'Los productos dentro también serán eliminados',
                 icon: 'warning',
                 background: '#0F091A',
                 color: '#fff',
@@ -341,56 +2393,18 @@
                 showCancelButton: true
             }).then(result => {
                 if(result.isConfirmed) {
-                    // Eliminar productos de esta sección
                     productosData.filter(p => p.seccionId === key).forEach(p => {
                         db.ref('productos/' + p.key).remove();
                     });
                     db.ref('secciones/' + key).remove();
-                    Swal.fire('Eliminado', 'Sección y sus productos eliminados', 'success');
+                    Swal.fire('Eliminado', 'Sección y productos eliminados', 'success');
                 }
             });
         }
 
-        function guardarConfigPagos() {
-            db.ref('configuracion/pagos').set({
-                movil: document.getElementById('conf-pago-movil').value,
-                banco: document.getElementById('conf-transferencia').value,
-                efectivo: document.getElementById('conf-efectivo').value,
-                puntoventa: document.getElementById('conf-puntoventa').value
-            });
-            Swal.fire("Éxito", "Métodos de pago actualizados", "success");
-        }
-
-        function guardarConfigExito() {
-            const nuevaTasa = parseFloat(document.getElementById('conf-tasa').value);
-            if(nuevaTasa && nuevaTasa > 0) tasaCambio = nuevaTasa;
-            const nuevoWhatsApp = document.getElementById('conf-whatsapp').value;
-            if(nuevoWhatsApp) numeroWhatsApp = nuevoWhatsApp;
-            
-            db.ref('configuracion/exito').set({
-                mensaje: document.getElementById('conf-exito-msg').value,
-                imagen: document.getElementById('adm-exito-img').value,
-                tasa: tasaCambio,
-                whatsapp: numeroWhatsApp
-            });
-            Swal.fire("Éxito", "Configuración guardada", "success");
-        }
-
-        db.ref('.info/connected').on('value', snap => {
-            const s = document.getElementById('status-fb');
-            s.innerText = snap.val() ? "SISTEMA ONLINE" : "OFFLINE";
-            s.className = snap.val() ? "text-[8px] md:text-[10px] font-bold px-3 py-1 md:px-4 md:py-2 bg-lime-500/10 rounded-full text-lime-400 border border-lime-500/20" : "text-[8px] md:text-[10px] font-bold px-3 py-1 md:px-4 md:py-2 bg-red-500/10 rounded-full text-red-400 border border-red-500/20";
-        });
-
-        function convertirBase64(input, targetId) {
-            const reader = new FileReader();
-            reader.onloadend = () => { document.getElementById('adm-' + targetId).value = reader.result; };
-            if (input.files[0]) reader.readAsDataURL(input.files[0]);
-        }
-
         function guardarSeccion() {
             const titulo = document.getElementById('adm-sec-titulo').value;
-            if(!titulo) return Swal.fire("Incompleto", "Escribe un título para la sección", "warning");
+            if(!titulo) return Swal.fire("Incompleto", "Escribe un título", "warning");
             
             db.ref('secciones').push({ titulo: titulo });
             document.getElementById('adm-sec-titulo').value = "";
@@ -405,35 +2419,8 @@
                 productosData.push(p);
             });
             renderizarTodo();
+            cargarProductosCaja();
         });
-
-        function verDetalleProducto(p) {
-            const itemsLista = p.descripcion ? p.descripcion.split('\n').filter(line => line.trim()) : [];
-            
-            Swal.fire({
-                title: `<span class="text-2xl font-black italic">${p.nombre}</span>`,
-                html: `
-                    <div class="text-left">
-                        <img src="${p.img1}" class="w-full h-48 object-cover rounded-xl mb-4">
-                        <div class="bg-white/5 p-4 rounded-xl">
-                            <h4 class="text-[var(--lime)] font-bold text-xs uppercase mb-3">✨ Características:</h4>
-                            <ul class="descripcion-lista">
-                                ${itemsLista.length > 0 ? itemsLista.map(item => `<li><i class="fas fa-check-circle"></i> ${item}</li>`).join('') : '<li><i class="fas fa-info-circle"></i> Sin descripción detallada</li>'}
-                            </ul>
-                        </div>
-                        <div class="mt-4 text-center">
-                            <p class="text-2xl font-black text-[var(--lime)]">$${parseFloat(p.precio).toLocaleString('de-DE')} USD</p>
-                            <p class="text-xs text-gray-400">Stock disponible: ${p.stock || 0} unidades</p>
-                        </div>
-                    </div>
-                `,
-                background: '#0F091A',
-                color: '#fff',
-                confirmButtonText: 'CERRAR',
-                confirmButtonColor: '#E91E63',
-                customClass: { popup: 'rounded-3xl border border-[var(--lime)]/30' }
-            });
-        }
 
         function renderizarTodo() {
             const container = document.getElementById('lista-contenido');
@@ -441,7 +2428,6 @@
             container.innerHTML = "";
             inventario.innerHTML = "";
             
-            // Renderizar inventario
             productosData.forEach(p => {
                 const stockVal = p.stock || 0;
                 inventario.innerHTML += `
@@ -452,11 +2438,15 @@
                             <span class="text-[var(--lime)]">Cant: ${stockVal}</span><br>
                             <span class="text-gray-400">$${parseFloat(p.precio).toLocaleString('de-DE')}</span>
                         </div>
-                        <button onclick="eliminarProducto('${p.key}')" class="text-red-500 text-sm"><i class="fas fa-trash"></i></button>
+                        <button onclick="editarProducto('${p.key}')" class="text-[var(--lime)] hover:text-[#d4ff00] transition text-sm">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="eliminarProducto('${p.key}')" class="text-red-500 hover:text-red-400 transition text-sm">
+                            <i class="fas fa-trash"></i>
+                        </button>
                     </div>`;
             });
             
-            // Renderizar catálogo por secciones
             if(seccionesData.length === 0) {
                 container.innerHTML = '<div class="text-center text-gray-500 py-10">Agrega secciones en el panel de administrador</div>';
                 return;
@@ -492,7 +2482,7 @@
                 
                 if(productosSeccion.length > 0) {
                     container.innerHTML += `
-                        <div class="section-header rounded-3xl p-6 md:p-8 mb-6">
+                        <div class="section-header">
                             <h2 class="text-3xl md:text-5xl font-black italic text-[var(--lime)] tracking-tighter">${seccion.titulo}</h2>
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-10">
@@ -500,6 +2490,34 @@
                         </div>
                     `;
                 }
+            });
+        }
+
+        function verDetalleProducto(p) {
+            const itemsLista = p.descripcion ? p.descripcion.split('\n').filter(line => line.trim()) : [];
+            
+            Swal.fire({
+                title: `<span class="text-2xl font-black italic">${p.nombre}</span>`,
+                html: `
+                    <div class="text-left">
+                        <img src="${p.img1}" class="w-full h-48 object-cover rounded-xl mb-4">
+                        <div class="bg-white/5 p-4 rounded-xl">
+                            <h4 class="text-[var(--lime)] font-bold text-xs uppercase mb-3">✨ Características:</h4>
+                            <ul class="descripcion-lista">
+                                ${itemsLista.length > 0 ? itemsLista.map(item => `<li><i class="fas fa-check-circle"></i> ${item}</li>`).join('') : '<li><i class="fas fa-info-circle"></i> Sin descripción</li>'}
+                            </ul>
+                        </div>
+                        <div class="mt-4 text-center">
+                            <p class="text-2xl font-black text-[var(--lime)]">$${parseFloat(p.precio).toLocaleString('de-DE')} USD</p>
+                            <p class="text-xs text-gray-400">Stock: ${p.stock || 0} unidades</p>
+                        </div>
+                    </div>
+                `,
+                background: '#0F091A',
+                color: '#fff',
+                confirmButtonText: 'CERRAR',
+                confirmButtonColor: '#E91E63',
+                customClass: { popup: 'rounded-3xl border border-[var(--lime)]/30' }
             });
         }
 
@@ -511,7 +2529,7 @@
                 if(existe.cantidad < prod.stock) {
                     existe.cantidad += 1;
                 } else {
-                    return Swal.fire("Límite de Stock", "No hay más unidades disponibles", "warning");
+                    return Swal.fire("Límite de Stock", "No hay más unidades", "warning");
                 }
             } else {
                 carrito.push({ ...prod, cantidad: 1 });
@@ -519,7 +2537,7 @@
             
             document.getElementById('cart-count').innerText = carrito.reduce((sum, p) => sum + p.cantidad, 0);
             const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, background: '#0F091A', color: '#fff' });
-            Toast.fire({ icon: 'success', title: 'Agregado al estudio' });
+            Toast.fire({ icon: 'success', title: 'Agregado al carrito' });
         }
 
         function verCarrito() {
@@ -617,9 +2635,9 @@
                     const n = document.getElementById('swal-nombre').value;
                     const s = document.getElementById('swal-status').value;
                     if(!m) { Swal.showValidationMessage('Selecciona un método de pago'); return false; }
-                    if(!t) { Swal.showValidationMessage('Ingresa tu teléfono de contacto'); return false; }
-                    if(m !== 'Efectivo' && m !== 'Punto de Venta' && !r) { Swal.showValidationMessage('Ingresa la referencia/número de operación'); return false; }
-                    if(!n) { Swal.showValidationMessage('Ingresa tu nombre completo'); return false; }
+                    if(!t) { Swal.showValidationMessage('Ingresa tu teléfono'); return false; }
+                    if(m !== 'Efectivo' && m !== 'Punto de Venta' && !r) { Swal.showValidationMessage('Ingresa la referencia'); return false; }
+                    if(!n) { Swal.showValidationMessage('Ingresa tu nombre'); return false; }
                     return { metodo: m, tel: t, ref: r || 'Efectivo/Punto de Venta', status: s, obs: document.getElementById('swal-obs').value, nombre: n, totalUSD: totalUSD, totalBs: totalBs };
                 }
             });
@@ -646,7 +2664,7 @@
             const originalProd = productosData.find(x => x.key === item.key);
             
             if(d > 0 && item.cantidad >= originalProd.stock) {
-                return Swal.fire("Límite de Stock", "No hay más unidades disponibles", "warning");
+                return Swal.fire("Límite de Stock", "No hay más unidades", "warning");
             }
             
             item.cantidad += d;
@@ -660,11 +2678,14 @@
             box.classList.remove('hidden');
             if(v === 'Pago Móvil') box.innerHTML = `📱 <strong>PAGO MÓVIL:</strong><br>${configPagos.movil || 'No configurado'}`;
             else if(v === 'Transferencia') box.innerHTML = `🏦 <strong>TRANSFERENCIA:</strong><br>${configPagos.banco || 'No configurado'}`;
-            else if(v === 'Efectivo') box.innerHTML = `💵 <strong>EFECTIVO:</strong><br>${configPagos.efectivo || 'Pago en efectivo al recibir el producto'}`;
-            else if(v === 'Punto de Venta') box.innerHTML = `💳 <strong>PUNTO DE VENTA:</strong><br>${configPagos.puntoventa || 'Pago con punto de venta al recibir'}`;
+            else if(v === 'Efectivo') box.innerHTML = `💵 <strong>EFECTIVO:</strong><br>${configPagos.efectivo || 'Pago en efectivo al recibir'}`;
+            else if(v === 'Punto de Venta') box.innerHTML = `💳 <strong>PUNTO DE VENTA:</strong><br>${configPagos.puntoventa || 'Pago con punto de venta'}`;
             else box.classList.add('hidden');
         }
 
+        // ============================================================
+        // 18. ENVIAR PEDIDO (CORREGIDO - ACTUALIZA VENTAS DEL DÍA)
+        // ============================================================
         async function enviarPedido(d) {
             const pedido = {
                 items: carrito.map(i => ({ nombre: i.nombre, cantidad: i.cantidad, precioUSD: i.precio })),
@@ -701,22 +2722,26 @@
                 `💳 *Método de pago:* ${d.metodo}\n` +
                 `📞 *Contacto:* ${d.tel}\n` +
                 `🔑 *Referencia:* ${d.ref}\n` +
-                `🚚 *Tipo de entrega:* ${d.status === 'rojo' ? 'URGENTE (24h)' : d.status === 'amarillo' ? 'MEDIANO (3 días)' : 'LARGO (7 días)'}\n` +
-                `${d.obs ? `📝 *Dirección/Obs:* ${d.obs}\n` : ''}` +
+                `🚚 *Entrega:* ${d.status === 'rojo' ? 'URGENTE (24h)' : d.status === 'amarillo' ? 'MEDIANO (3 días)' : 'LARGO (7 días)'}\n` +
+                `${d.obs ? `📝 *Obs:* ${d.obs}\n` : ''}` +
                 `━━━━━━━━━━━━━━━━━━━━\n` +
-                `✨ *¡Gracias por tu compra!* ✨\n` +
-                `🔔 *RS ART STUDIO*`;
+                `✨ *¡Gracias por tu compra!* ✨`;
 
             const mensajeCodificado = encodeURIComponent(facturaTexto);
-            window.open(`https://wa.me/${numeroWhatsApp}?text=${mensajeCodificado}`, '_blank');
+            window.open(`https://wa.me/${d.tel || numeroWhatsApp}?text=${mensajeCodificado}`, '_blank');
 
             db.ref('alarma_evento').set({ id: Math.random(), tipo: "COMPRA", info: `$${d.totalUSD} USD (${d.nombre})`, timestamp: Date.now() });
             carrito = [];
             document.getElementById('cart-count').innerText = "0";
 
+            // 🔥 ACTUALIZAR VENTAS DEL DÍA INMEDIATAMENTE 🔥
+            setTimeout(() => {
+                calcularVentasDia();
+            }, 500);
+
             Swal.fire({
                 title: `<span class="text-xl md:text-3xl font-black italic tracking-tighter uppercase">${configExito.mensaje}</span>`,
-                html: `<p class="text-sm mt-2">Se ha enviado la factura a tu WhatsApp</p>`,
+                html: `<p class="text-sm mt-2">Factura enviada a WhatsApp</p>`,
                 imageUrl: configExito.imagen || 'https://via.placeholder.com/400x300?text=EXITO',
                 imageWidth: 300,
                 background: '#0F091A',
@@ -725,54 +2750,6 @@
                 confirmButtonColor: '#E91E63',
                 customClass: { popup: 'rounded-[30px] border border-[var(--lime)]/30' }
             });
-        }
-
-        function modoAdmin() {
-            if(prompt("Clave:") === "2025") {
-                document.getElementById('panelAdmin').classList.remove('hidden');
-                escucharPedidos();
-                activarMonitorAlarma();
-            }
-        }
-
-        function cerrarAdmin() { document.getElementById('panelAdmin').classList.add('hidden'); }
-
-        function escucharPedidos() {
-            db.ref('pedidos').on('value', snap => {
-                const list = document.getElementById('lista-pedidos');
-                list.innerHTML = "";
-                let peds = [];
-                snap.forEach(child => { let p = child.val(); p.key = child.key; peds.push(p); });
-                const orden = { 'rojo': 1, 'amarillo': 2, 'verde': 3 };
-                peds.sort((a, b) => orden[a.status] - orden[b.status]);
-
-                peds.forEach(ped => {
-                    list.innerHTML += `
-                        <div class="bg-black/60 p-4 md:p-6 rounded-2xl md:rounded-3xl status-${ped.status} animate__animated animate__fadeInRight">
-                            <div class="flex justify-between items-start mb-2 md:mb-4">
-                                <div>
-                                    <span class="font-black text-[var(--lime)] text-sm md:text-xl italic">$${ped.totalUSD.toLocaleString('de-DE')} USD</span>
-                                    <span class="text-xs text-gray-400 ml-2">(Bs. ${ped.totalBs.toLocaleString('de-DE')})</span>
-                                </div>
-                                <button onclick="borrarPedidoIndividual('${ped.key}')" class="w-8 h-8 md:w-10 md:h-10 bg-white/5 rounded-lg text-green-500 hover:bg-green-500 hover:text-white transition-all flex items-center justify-center text-xs"><i class="fas fa-check"></i></button>
-                            </div>
-                            <div class="space-y-1 text-[10px] md:text-xs">
-                                <p><b class="text-gray-500 uppercase">Cliente:</b> ${ped.nombre || 'Anónimo'}</p>
-                                <p><b class="text-gray-500 uppercase">Items:</b> ${ped.items.map(i => i.nombre + ' (x'+i.cantidad+')').join(', ')}</p>
-                                <p><b class="text-gray-500 uppercase">Pago:</b> ${ped.metodo} | ${ped.tel}</p>
-                                <p><b class="text-gray-500 uppercase">Ref:</b> <span class="text-white">${ped.ref}</span></p>
-                                <p><b class="text-gray-500 uppercase">Entrega:</b> ${ped.status === 'rojo' ? 'URGENTE' : ped.status === 'amarillo' ? 'MEDIANO' : 'LARGO'}</p>
-                                <p class="text-[8px] text-gray-600 mt-2">${ped.fecha}</p>
-                            </div>
-                        </div>`;
-                });
-            });
-        }
-
-        function borrarPedidoIndividual(k) { if(confirm("¿Marcar como completado y eliminar?")) db.ref('pedidos/' + k).remove(); }
-        function descargarPDF() {
-            const element = document.getElementById('lista-pedidos');
-            html2pdf().set({ margin: 1, filename: 'pedidos_rs_art.pdf', jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' } }).from(element).save();
         }
 
         function guardarProducto() {
@@ -793,12 +2770,55 @@
             document.getElementById('adm-descripcion').value = "";
         }
 
-        function eliminarProducto(k) { if(confirm("¿Eliminar este producto?")) db.ref('productos/' + k).remove(); }
-        function borrarPedidos() { if(confirm("¿Vaciar todos los pedidos?")) db.ref('pedidos').remove(); }
+        function eliminarProducto(k) { 
+            if(confirm("¿Eliminar este producto?")) {
+                db.ref('productos/' + k).remove();
+                setTimeout(calcularVentasDia, 500);
+            }
+        }
         
+        function borrarPedidos() { if(confirm("¿Vaciar todos los pedidos?")) db.ref('pedidos').remove(); }
+        function descargarPDF() {
+            const element = document.getElementById('lista-pedidos');
+            html2pdf().set({ margin: 1, filename: 'pedidos_rs_art.pdf', jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' } }).from(element).save();
+        }
+
+        function borrarPedidoIndividual(k) { 
+            if(confirm("¿Marcar como completado?")) {
+                db.ref('pedidos/' + k).remove();
+                setTimeout(calcularVentasDia, 500);
+            }
+        }
+
+        // ============================================================
+        // 19. ADMINISTRADOR
+        // ============================================================
+        function modoAdmin() {
+            const clave = prompt("🔐 CLAVE DE ADMINISTRADOR:");
+            if(clave === "2025") {
+                document.getElementById('panelAdmin').classList.remove('hidden');
+                escucharPedidos();
+                activarMonitorAlarma();
+                calcularVentasDia();
+                cargarProductosCaja();
+            } else if(clave !== null) {
+                Swal.fire("Acceso Denegado", "Clave incorrecta", "error");
+            }
+        }
+
+        function cerrarAdmin() { document.getElementById('panelAdmin').classList.add('hidden'); }
+
         function tocarTimbreSolo() {
             db.ref('alarma_evento').set({ id: Math.random(), tipo: "TIMBRE", info: "Atención cliente", timestamp: Date.now() });
-            Swal.fire({ title: "NOTIFICANDO", icon: "success", timer: 1000, showConfirmButton: false, background: '#0F091A', color: '#fff' });
+            Swal.fire({ 
+                title: "📢 ¡TU IDEA!",
+                text: "Notificación enviada al administrador",
+                icon: "success", 
+                timer: 1500, 
+                showConfirmButton: false, 
+                background: '#0F091A', 
+                color: '#fff' 
+            });
         }
 
         function activarMonitorAlarma() {
