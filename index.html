@@ -1771,7 +1771,7 @@
         }
 
         // ============================================================
-        // 8. REGISTRAR VENTA EN CAJA - CORREGIDO
+        // 8. REGISTRAR VENTA EN CAJA - CORREGIDO CON TIMESTAMP
         // ============================================================
         async function registrarVentaCaja() {
             if (ticketProductos.length === 0) {
@@ -1782,6 +1782,7 @@
             const cliente = document.getElementById('cliente-caja').value.trim() || 'Cliente sin nombre';
             const telefono = document.getElementById('telefono-caja').value.trim() || numeroWhatsApp;
             const tasa = parseFloat(document.getElementById('conf-tasa').value) || tasaCambio;
+            const ahora = Date.now(); // 🔥 TIMESTAMP NUMÉRICO
             
             let totalUSD = 0;
             ticketProductos.forEach(p => {
@@ -1803,6 +1804,7 @@
                 nombre: cliente,
                 obs: 'Venta registrada desde caja',
                 fecha: new Date().toLocaleString(),
+                timestamp: ahora, // 🔥 CLAVE PARA COMPARAR FECHAS
                 status: 'verde',
                 tasa: tasa
             };
@@ -1971,11 +1973,17 @@
         }
 
         // ============================================================
-        // 10. CONTROL DE VENTAS DEL DÍA - CORREGIDO (EN TIEMPO REAL)
+        // 10. CONTROL DE VENTAS DEL DÍA - VERSIÓN ROBUSTA CON TIMESTAMP
         // ============================================================
         function calcularVentasDia() {
-            const hoy = new Date().toLocaleDateString();
-            console.log("🔄 Calculando ventas del día...", hoy);
+            // Obtener fecha de hoy en formato YYYY-MM-DD (universal)
+            const hoy = new Date();
+            const año = hoy.getFullYear();
+            const mes = String(hoy.getMonth() + 1).padStart(2, '0');
+            const dia = String(hoy.getDate()).padStart(2, '0');
+            const fechaHoyStr = `${año}-${mes}-${dia}`;
+            
+            console.log("📅 [calcularVentasDia] Buscando ventas del día:", fechaHoyStr);
 
             // Usamos .on() para escuchar en tiempo real
             db.ref('pedidos').on('value', snap => {
@@ -1985,89 +1993,165 @@
                 const ventas = [];
 
                 if (!snap.exists()) {
-                    console.log("⚠️ No hay pedidos registrados");
-                    document.getElementById('total-compras-dia').textContent = '0';
-                    document.getElementById('total-usd-dia').textContent = '$0.00';
-                    document.getElementById('total-bs-dia').textContent = 'Bs 0.00';
-                    document.getElementById('tabla-ventas-body').innerHTML = 
-                        '<tr><td colspan="6" class="text-center text-gray-500 py-4">No hay ventas registradas hoy</td></tr>';
+                    actualizarTotales(0, 0, 0, []);
+                    console.log("📊 [calcularVentasDia] No hay pedidos registrados");
                     return;
                 }
 
                 snap.forEach(child => {
                     const ped = child.val();
-                    if (ped && ped.fecha) {
-                        try {
-                            const fechaPed = new Date(ped.fecha);
-                            const fechaStr = fechaPed.toLocaleDateString();
-                            
-                            if (fechaStr === hoy) {
-                                totalCompras++;
-                                totalUSD += parseFloat(ped.totalUSD) || 0;
-                                totalBs += parseFloat(ped.totalBs) || 0;
-                                
-                                ventas.push({
-                                    fecha: fechaStr,
-                                    hora: fechaPed.toLocaleTimeString(),
-                                    cliente: ped.nombre || 'Anónimo',
-                                    productos: ped.items ? ped.items.map(i => i.nombre + ' (x' + i.cantidad + ')').join(', ') : 'Sin productos',
-                                    totalUSD: parseFloat(ped.totalUSD) || 0,
-                                    totalBs: parseFloat(ped.totalBs) || 0
-                                });
+                    if (!ped) return;
+                    
+                    try {
+                        // ==========================================
+                        // 1. EXTRAER LA FECHA DEL PEDIDO (ROBUSTO)
+                        // ==========================================
+                        let fechaPedidoStr = '';
+                        
+                        // Método 1: Usar timestamp numérico (más confiable)
+                        if (ped.timestamp && typeof ped.timestamp === 'number') {
+                            const fechaObj = new Date(ped.timestamp);
+                            if (!isNaN(fechaObj)) {
+                                const a = fechaObj.getFullYear();
+                                const m = String(fechaObj.getMonth() + 1).padStart(2, '0');
+                                const d = String(fechaObj.getDate()).padStart(2, '0');
+                                fechaPedidoStr = `${a}-${m}-${d}`;
                             }
-                        } catch (e) {
-                            console.warn("Error procesando pedido:", e);
                         }
+                        
+                        // Método 2: Si no hay timestamp, usar el campo 'fecha' (string)
+                        if (!fechaPedidoStr && ped.fecha) {
+                            if (typeof ped.fecha === 'string') {
+                                // Limpiar la fecha: quitar hora, solo la parte de fecha
+                                let fechaLimpia = ped.fecha.split(',')[0].trim();
+                                fechaLimpia = fechaLimpia.split(' ')[0].trim();
+                                
+                                // Intentar convertir a objeto Date
+                                const fechaObj = new Date(fechaLimpia);
+                                if (!isNaN(fechaObj)) {
+                                    const a = fechaObj.getFullYear();
+                                    const m = String(fechaObj.getMonth() + 1).padStart(2, '0');
+                                    const d = String(fechaObj.getDate()).padStart(2, '0');
+                                    fechaPedidoStr = `${a}-${m}-${d}`;
+                                } else {
+                                    // Fallback: parsear manualmente formato "MM/DD/YYYY"
+                                    const partes = fechaLimpia.split('/');
+                                    if (partes.length === 3) {
+                                        const mm = partes[0].padStart(2, '0');
+                                        const dd = partes[1].padStart(2, '0');
+                                        let aa = partes[2];
+                                        if (aa.length === 2) aa = '20' + aa;
+                                        fechaPedidoStr = `${aa}-${mm}-${dd}`;
+                                    }
+                                }
+                            } else if (typeof ped.fecha === 'object') {
+                                // Si es un objeto Date de Firebase
+                                const fechaObj = new Date(ped.fecha);
+                                if (!isNaN(fechaObj)) {
+                                    const a = fechaObj.getFullYear();
+                                    const m = String(fechaObj.getMonth() + 1).padStart(2, '0');
+                                    const d = String(fechaObj.getDate()).padStart(2, '0');
+                                    fechaPedidoStr = `${a}-${m}-${d}`;
+                                }
+                            }
+                        }
+                        
+                        // Si no se pudo extraer, saltar este pedido
+                        if (!fechaPedidoStr) {
+                            console.warn("⚠️ No se pudo extraer fecha del pedido:", ped);
+                            return;
+                        }
+                        
+                        // ==========================================
+                        // 2. COMPARAR CON LA FECHA DE HOY
+                        // ==========================================
+                        if (fechaPedidoStr === fechaHoyStr) {
+                            totalCompras++;
+                            totalUSD += parseFloat(ped.totalUSD) || 0;
+                            totalBs += parseFloat(ped.totalBs) || 0;
+                            
+                            // Obtener hora para mostrar
+                            let horaStr = '--:--';
+                            if (ped.timestamp) {
+                                const fechaObj = new Date(ped.timestamp);
+                                if (!isNaN(fechaObj)) {
+                                    horaStr = fechaObj.toLocaleTimeString();
+                                }
+                            } else if (ped.fecha) {
+                                const fechaObj = new Date(ped.fecha);
+                                if (!isNaN(fechaObj)) {
+                                    horaStr = fechaObj.toLocaleTimeString();
+                                }
+                            }
+                            
+                            ventas.push({
+                                fecha: fechaPedidoStr,
+                                hora: horaStr,
+                                cliente: ped.nombre || 'Anónimo',
+                                productos: ped.items ? ped.items.map(i => i.nombre + ' (x' + i.cantidad + ')').join(', ') : 'Sin productos',
+                                totalUSD: parseFloat(ped.totalUSD) || 0,
+                                totalBs: parseFloat(ped.totalBs) || 0
+                            });
+                        }
+                        
+                    } catch (e) {
+                        console.warn("⚠️ Error procesando pedido:", e);
                     }
                 });
 
-                // Actualizar totales
-                document.getElementById('total-compras-dia').textContent = totalCompras;
-                document.getElementById('total-usd-dia').textContent = '$' + totalUSD.toFixed(2);
-                document.getElementById('total-bs-dia').textContent = 'Bs ' + totalBs.toFixed(2);
-
-                // Actualizar tabla
-                const tbody = document.getElementById('tabla-ventas-body');
-                if (ventas.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-gray-500 py-4">No hay ventas registradas hoy</td></tr>';
-                } else {
-                    // Ordenar por hora (más reciente primero)
-                    ventas.sort((a, b) => {
-                        if (a.hora < b.hora) return 1;
-                        if (a.hora > b.hora) return -1;
-                        return 0;
-                    });
-                    
-                    tbody.innerHTML = ventas.map(v => `
-                        <tr class="border-b border-white/5 hover:bg-white/5 transition">
-                            <td class="py-2 px-3">${v.fecha}</td>
-                            <td class="py-2 px-3">${v.hora}</td>
-                            <td class="py-2 px-3 font-bold text-[var(--lime)]">${v.cliente}</td>
-                            <td class="py-2 px-3 text-xs">${v.productos}</td>
-                            <td class="py-2 px-3 text-[var(--lime)] font-bold">$${v.totalUSD.toFixed(2)}</td>
-                            <td class="py-2 px-3 text-[var(--magenta)] font-bold">Bs ${v.totalBs.toFixed(2)}</td>
-                        </tr>
-                    `).join('');
-                }
+                // Actualizar la interfaz
+                actualizarTotales(totalCompras, totalUSD, totalBs, ventas);
                 
-                console.log("✅ Ventas del día actualizadas:", { totalCompras, totalUSD, totalBs });
+                if (ventas.length > 0) {
+                    console.log(`✅ Ventas del día ${fechaHoyStr}: ${totalCompras} compras, $${totalUSD.toFixed(2)} USD, Bs ${totalBs.toFixed(2)}`);
+                }
             });
         }
 
         // ============================================================
-        // 11. FUNCIÓN PARA FORZAR ACTUALIZACIÓN DE VENTAS
+        // 11. FUNCIÓN PARA ACTUALIZAR LA INTERFAZ DE USUARIO
+        // ============================================================
+        function actualizarTotales(compras, usd, bs, ventas) {
+            document.getElementById('total-compras-dia').textContent = compras;
+            document.getElementById('total-usd-dia').textContent = '$' + usd.toFixed(2);
+            document.getElementById('total-bs-dia').textContent = 'Bs ' + bs.toFixed(2);
+            
+            const tbody = document.getElementById('tabla-ventas-body');
+            if (ventas.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center text-gray-500 py-4">No hay ventas registradas hoy</td></tr>';
+            } else {
+                // Ordenar por hora (más reciente primero)
+                ventas.sort((a, b) => {
+                    if (a.hora < b.hora) return 1;
+                    if (a.hora > b.hora) return -1;
+                    return 0;
+                });
+                
+                tbody.innerHTML = ventas.map(v => `
+                    <tr class="border-b border-white/5 hover:bg-white/5 transition">
+                        <td class="py-2 px-3">${v.fecha}</td>
+                        <td class="py-2 px-3">${v.hora}</td>
+                        <td class="py-2 px-3 font-bold text-[var(--lime)]">${v.cliente}</td>
+                        <td class="py-2 px-3 text-xs">${v.productos}</td>
+                        <td class="py-2 px-3 text-[var(--lime)] font-bold">$${v.totalUSD.toFixed(2)}</td>
+                        <td class="py-2 px-3 text-[var(--magenta)] font-bold">Bs ${v.totalBs.toFixed(2)}</td>
+                    </tr>
+                `).join('');
+            }
+        }
+
+        // ============================================================
+        // 12. FUNCIÓN PARA FORZAR ACTUALIZACIÓN DE VENTAS
         // ============================================================
         function forzarActualizacionVentas() {
             console.log("🔄 Forzando actualización de ventas...");
-            // Simplemente llamamos a calcularVentasDia que ya escucha en tiempo real
-            // Pero forzamos una nueva lectura
             db.ref('pedidos').once('value', snap => {
-                console.log("📊 Datos actualizados forzadamente");
+                console.log("📊 Datos de pedidos refrescados");
             });
         }
 
         // ============================================================
-        // 12. ESCUCHAR PEDIDOS EN TIEMPO REAL
+        // 13. ESCUCHAR PEDIDOS EN TIEMPO REAL
         // ============================================================
         function escucharPedidos() {
             db.ref('pedidos').on('value', snap => {
@@ -2104,13 +2188,11 @@
                             </div>
                         </div>`;
                 });
-                
-                // Las ventas del día ya se actualizan en tiempo real con calcularVentasDia
             });
         }
 
         // ============================================================
-        // 13. EXPORTAR EXCEL
+        // 14. EXPORTAR EXCEL
         // ============================================================
         function exportarExcelDia() {
             const hoy = new Date().toLocaleDateString();
@@ -2151,7 +2233,7 @@
         }
 
         // ============================================================
-        // 14. ENVIAR WHATSAPP
+        // 15. ENVIAR WHATSAPP
         // ============================================================
         function enviarWhatsAppDia() {
             const hoy = new Date().toLocaleDateString();
@@ -2200,7 +2282,7 @@
         }
 
         // ============================================================
-        // 15. CONTENIDO DEL SITIO
+        // 16. CONTENIDO DEL SITIO
         // ============================================================
         function actualizarContenidoSitio() {
             if (contenidoSitio.textoInicio) {
@@ -2247,7 +2329,7 @@
         }
 
         // ============================================================
-        // 16. CONVERTIR BASE64
+        // 17. CONVERTIR BASE64
         // ============================================================
         function convertirBase64Multiple(input, targetId) {
             const files = input.files;
@@ -2293,7 +2375,7 @@
         }
 
         // ============================================================
-        // 17. CONFIGURACIONES FIREBASE
+        // 18. CONFIGURACIONES FIREBASE
         // ============================================================
         db.ref('configuracion').on('value', snap => {
             const data = snap.val();
@@ -2386,7 +2468,7 @@
         });
 
         // ============================================================
-        // 18. SECCIONES Y PRODUCTOS
+        // 19. SECCIONES Y PRODUCTOS
         // ============================================================
         db.ref('secciones').on('value', snap => {
             seccionesData = [];
@@ -2714,9 +2796,11 @@
         }
 
         // ============================================================
-        // 19. ENVIAR PEDIDO - CORREGIDO
+        // 20. ENVIAR PEDIDO - CORREGIDO CON TIMESTAMP
         // ============================================================
         async function enviarPedido(d) {
+            const ahora = Date.now(); // 🔥 TIMESTAMP NUMÉRICO
+            
             const pedido = {
                 items: carrito.map(i => ({ nombre: i.nombre, cantidad: i.cantidad, precioUSD: i.precio })),
                 totalUSD: d.totalUSD,
@@ -2727,6 +2811,7 @@
                 nombre: d.nombre,
                 obs: d.obs,
                 fecha: new Date().toLocaleString(),
+                timestamp: ahora, // 🔥 CLAVE PARA COMPARAR FECHAS
                 status: d.status,
                 tasa: tasaCambio
             };
@@ -2821,7 +2906,7 @@
         }
 
         // ============================================================
-        // 20. ADMINISTRADOR
+        // 21. ADMINISTRADOR
         // ============================================================
         function modoAdmin() {
             const clave = prompt("🔐 CLAVE DE ADMINISTRADOR:");
