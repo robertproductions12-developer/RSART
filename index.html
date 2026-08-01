@@ -1782,7 +1782,7 @@
             const cliente = document.getElementById('cliente-caja').value.trim() || 'Cliente sin nombre';
             const telefono = document.getElementById('telefono-caja').value.trim() || numeroWhatsApp;
             const tasa = parseFloat(document.getElementById('conf-tasa').value) || tasaCambio;
-            const ahora = Date.now(); // 🔥 TIMESTAMP NUMÉRICO
+            const ahora = Date.now();
             
             let totalUSD = 0;
             ticketProductos.forEach(p => {
@@ -1804,21 +1804,18 @@
                 nombre: cliente,
                 obs: 'Venta registrada desde caja',
                 fecha: new Date().toLocaleString(),
-                timestamp: ahora, // 🔥 CLAVE PARA COMPARAR FECHAS
+                timestamp: ahora,
                 status: 'verde',
                 tasa: tasa
             };
             
-            // Guardar en Firebase
             await db.ref('pedidos').push(pedido);
             
-            // Actualizar stock
             for (const item of ticketProductos) {
                 const prodRef = db.ref(`productos/${item.key}/stock`);
                 await prodRef.transaction((currentStock) => (currentStock || 0) - item.cantidad);
             }
             
-            // Enviar factura al WhatsApp del cliente
             const facturaTexto = `📋 *FACTURA RS ART STUDIO - CAJA*\n\n` +
                 `👤 *Cliente:* ${cliente}\n` +
                 `📅 *Fecha:* ${new Date().toLocaleString()}\n` +
@@ -1836,7 +1833,6 @@
             const mensajeCodificado = encodeURIComponent(facturaTexto);
             window.open(`https://wa.me/${telefono}?text=${mensajeCodificado}`, '_blank');
             
-            // También enviar al número del negocio
             const negocioMsg = `📊 *VENTA REGISTRADA EN CAJA*\n\n` +
                 `👤 *Cliente:* ${cliente}\n` +
                 `📱 *Teléfono:* ${telefono}\n` +
@@ -1871,12 +1867,10 @@
             
             limpiarTicketCaja();
             
-            // 🔥 FORZAR ACTUALIZACIÓN DE VENTAS 🔥
             setTimeout(() => {
                 forzarActualizacionVentas();
             }, 500);
             
-            // También recargar productos para actualizar stock
             setTimeout(() => {
                 db.ref('productos').once('value');
             }, 1000);
@@ -1973,10 +1967,9 @@
         }
 
         // ============================================================
-        // 10. CONTROL DE VENTAS DEL DÍA - VERSIÓN ROBUSTA CON TIMESTAMP
+        // 10. CALCULAR VENTAS DEL DÍA - VERSIÓN ROBUSTA CON TIMESTAMP
         // ============================================================
         function calcularVentasDia() {
-            // Obtener fecha de hoy en formato YYYY-MM-DD (universal)
             const hoy = new Date();
             const año = hoy.getFullYear();
             const mes = String(hoy.getMonth() + 1).padStart(2, '0');
@@ -1985,7 +1978,6 @@
             
             console.log("📅 [calcularVentasDia] Buscando ventas del día:", fechaHoyStr);
 
-            // Usamos .on() para escuchar en tiempo real
             db.ref('pedidos').on('value', snap => {
                 let totalCompras = 0;
                 let totalUSD = 0;
@@ -1994,7 +1986,6 @@
 
                 if (!snap.exists()) {
                     actualizarTotales(0, 0, 0, []);
-                    console.log("📊 [calcularVentasDia] No hay pedidos registrados");
                     return;
                 }
 
@@ -2003,12 +1994,9 @@
                     if (!ped) return;
                     
                     try {
-                        // ==========================================
-                        // 1. EXTRAER LA FECHA DEL PEDIDO (ROBUSTO)
-                        // ==========================================
                         let fechaPedidoStr = '';
                         
-                        // Método 1: Usar timestamp numérico (más confiable)
+                        // Método 1: timestamp numérico
                         if (ped.timestamp && typeof ped.timestamp === 'number') {
                             const fechaObj = new Date(ped.timestamp);
                             if (!isNaN(fechaObj)) {
@@ -2019,14 +2007,11 @@
                             }
                         }
                         
-                        // Método 2: Si no hay timestamp, usar el campo 'fecha' (string)
+                        // Método 2: campo 'fecha' string
                         if (!fechaPedidoStr && ped.fecha) {
                             if (typeof ped.fecha === 'string') {
-                                // Limpiar la fecha: quitar hora, solo la parte de fecha
                                 let fechaLimpia = ped.fecha.split(',')[0].trim();
                                 fechaLimpia = fechaLimpia.split(' ')[0].trim();
-                                
-                                // Intentar convertir a objeto Date
                                 const fechaObj = new Date(fechaLimpia);
                                 if (!isNaN(fechaObj)) {
                                     const a = fechaObj.getFullYear();
@@ -2034,7 +2019,6 @@
                                     const d = String(fechaObj.getDate()).padStart(2, '0');
                                     fechaPedidoStr = `${a}-${m}-${d}`;
                                 } else {
-                                    // Fallback: parsear manualmente formato "MM/DD/YYYY"
                                     const partes = fechaLimpia.split('/');
                                     if (partes.length === 3) {
                                         const mm = partes[0].padStart(2, '0');
@@ -2045,7 +2029,6 @@
                                     }
                                 }
                             } else if (typeof ped.fecha === 'object') {
-                                // Si es un objeto Date de Firebase
                                 const fechaObj = new Date(ped.fecha);
                                 if (!isNaN(fechaObj)) {
                                     const a = fechaObj.getFullYear();
@@ -2056,21 +2039,15 @@
                             }
                         }
                         
-                        // Si no se pudo extraer, saltar este pedido
                         if (!fechaPedidoStr) {
-                            console.warn("⚠️ No se pudo extraer fecha del pedido:", ped);
                             return;
                         }
                         
-                        // ==========================================
-                        // 2. COMPARAR CON LA FECHA DE HOY
-                        // ==========================================
                         if (fechaPedidoStr === fechaHoyStr) {
                             totalCompras++;
                             totalUSD += parseFloat(ped.totalUSD) || 0;
                             totalBs += parseFloat(ped.totalBs) || 0;
                             
-                            // Obtener hora para mostrar
                             let horaStr = '--:--';
                             if (ped.timestamp) {
                                 const fechaObj = new Date(ped.timestamp);
@@ -2084,13 +2061,16 @@
                                 }
                             }
                             
+                            const completadoStr = ped.completado ? ' ✅' : '';
+                            
                             ventas.push({
                                 fecha: fechaPedidoStr,
                                 hora: horaStr,
-                                cliente: ped.nombre || 'Anónimo',
+                                cliente: ped.nombre || 'Anónimo' + completadoStr,
                                 productos: ped.items ? ped.items.map(i => i.nombre + ' (x' + i.cantidad + ')').join(', ') : 'Sin productos',
                                 totalUSD: parseFloat(ped.totalUSD) || 0,
-                                totalBs: parseFloat(ped.totalBs) || 0
+                                totalBs: parseFloat(ped.totalBs) || 0,
+                                completado: ped.completado || false
                             });
                         }
                         
@@ -2099,17 +2079,12 @@
                     }
                 });
 
-                // Actualizar la interfaz
                 actualizarTotales(totalCompras, totalUSD, totalBs, ventas);
-                
-                if (ventas.length > 0) {
-                    console.log(`✅ Ventas del día ${fechaHoyStr}: ${totalCompras} compras, $${totalUSD.toFixed(2)} USD, Bs ${totalBs.toFixed(2)}`);
-                }
             });
         }
 
         // ============================================================
-        // 11. FUNCIÓN PARA ACTUALIZAR LA INTERFAZ DE USUARIO
+        // 11. ACTUALIZAR TOTALES - CON INDICADOR DE COMPLETADO
         // ============================================================
         function actualizarTotales(compras, usd, bs, ventas) {
             document.getElementById('total-compras-dia').textContent = compras;
@@ -2120,7 +2095,6 @@
             if (ventas.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="6" class="text-center text-gray-500 py-4">No hay ventas registradas hoy</td></tr>';
             } else {
-                // Ordenar por hora (más reciente primero)
                 ventas.sort((a, b) => {
                     if (a.hora < b.hora) return 1;
                     if (a.hora > b.hora) return -1;
@@ -2128,10 +2102,10 @@
                 });
                 
                 tbody.innerHTML = ventas.map(v => `
-                    <tr class="border-b border-white/5 hover:bg-white/5 transition">
+                    <tr class="border-b border-white/5 hover:bg-white/5 transition ${v.completado ? 'opacity-60' : ''}">
                         <td class="py-2 px-3">${v.fecha}</td>
                         <td class="py-2 px-3">${v.hora}</td>
-                        <td class="py-2 px-3 font-bold text-[var(--lime)]">${v.cliente}</td>
+                        <td class="py-2 px-3 font-bold ${v.completado ? 'text-green-400' : 'text-[var(--lime)]'}">${v.cliente}</td>
                         <td class="py-2 px-3 text-xs">${v.productos}</td>
                         <td class="py-2 px-3 text-[var(--lime)] font-bold">$${v.totalUSD.toFixed(2)}</td>
                         <td class="py-2 px-3 text-[var(--magenta)] font-bold">Bs ${v.totalBs.toFixed(2)}</td>
@@ -2141,7 +2115,7 @@
         }
 
         // ============================================================
-        // 12. FUNCIÓN PARA FORZAR ACTUALIZACIÓN DE VENTAS
+        // 12. FORZAR ACTUALIZACIÓN DE VENTAS
         // ============================================================
         function forzarActualizacionVentas() {
             console.log("🔄 Forzando actualización de ventas...");
@@ -2151,7 +2125,7 @@
         }
 
         // ============================================================
-        // 13. ESCUCHAR PEDIDOS EN TIEMPO REAL
+        // 13. ESCUCHAR PEDIDOS - SOLO MUESTRA NO COMPLETADOS
         // ============================================================
         function escucharPedidos() {
             db.ref('pedidos').on('value', snap => {
@@ -2162,11 +2136,18 @@
                 snap.forEach(child => { 
                     let p = child.val(); 
                     p.key = child.key; 
-                    peds.push(p); 
+                    if (!p.completado) {
+                        peds.push(p); 
+                    }
                 });
                 
                 const orden = { 'rojo': 1, 'amarillo': 2, 'verde': 3 };
-                peds.sort((a, b) => orden[a.status] - orden[b.status]);
+                peds.sort((a, b) => (orden[a.status] || 0) - (orden[b.status] || 0));
+
+                if (peds.length === 0) {
+                    list.innerHTML = `<div class="text-center text-gray-500 py-8 text-xs uppercase tracking-wider">✅ Todos los pedidos han sido completados</div>`;
+                    return;
+                }
 
                 peds.forEach(ped => {
                     list.innerHTML += `
@@ -2176,7 +2157,9 @@
                                     <span class="font-black text-[var(--lime)] text-sm md:text-xl italic">$${ped.totalUSD ? ped.totalUSD.toLocaleString('de-DE') : '0.00'} USD</span>
                                     <span class="text-xs text-gray-400 ml-2">(Bs. ${ped.totalBs ? ped.totalBs.toLocaleString('de-DE') : '0.00'})</span>
                                 </div>
-                                <button onclick="borrarPedidoIndividual('${ped.key}')" class="w-8 h-8 md:w-10 md:h-10 bg-white/5 rounded-lg text-green-500 hover:bg-green-500 hover:text-white transition-all flex items-center justify-center text-xs"><i class="fas fa-check"></i></button>
+                                <button onclick="borrarPedidoIndividual('${ped.key}')" class="w-8 h-8 md:w-10 md:h-10 bg-green-600/20 rounded-lg text-green-400 hover:bg-green-600 hover:text-white transition-all flex items-center justify-center text-xs" title="Marcar como completado">
+                                    <i class="fas fa-check"></i>
+                                </button>
                             </div>
                             <div class="space-y-1 text-[10px] md:text-xs">
                                 <p><b class="text-gray-500 uppercase">Cliente:</b> ${ped.nombre || 'Anónimo'}</p>
@@ -2192,7 +2175,33 @@
         }
 
         // ============================================================
-        // 14. EXPORTAR EXCEL
+        // 14. BORRAR PEDIDO INDIVIDUAL - MARCA COMO COMPLETADO
+        // ============================================================
+        function borrarPedidoIndividual(key) {
+            if (confirm("¿Marcar este pedido como COMPLETADO?")) {
+                db.ref('pedidos/' + key).update({
+                    completado: true,
+                    fechaCompletado: new Date().toLocaleString()
+                });
+                
+                Swal.fire({
+                    title: "✅ ¡Completado!",
+                    text: "El pedido ha sido marcado como atendido. Se mantiene en el registro del día.",
+                    icon: "success",
+                    background: '#0F091A',
+                    color: '#fff',
+                    confirmButtonColor: '#C6FF00',
+                    timer: 2000
+                });
+                
+                setTimeout(() => {
+                    db.ref('pedidos').once('value');
+                }, 500);
+            }
+        }
+
+        // ============================================================
+        // 15. EXPORTAR EXCEL
         // ============================================================
         function exportarExcelDia() {
             const hoy = new Date().toLocaleDateString();
@@ -2233,7 +2242,7 @@
         }
 
         // ============================================================
-        // 15. ENVIAR WHATSAPP
+        // 16. ENVIAR WHATSAPP
         // ============================================================
         function enviarWhatsAppDia() {
             const hoy = new Date().toLocaleDateString();
@@ -2282,7 +2291,7 @@
         }
 
         // ============================================================
-        // 16. CONTENIDO DEL SITIO
+        // 17. CONTENIDO DEL SITIO
         // ============================================================
         function actualizarContenidoSitio() {
             if (contenidoSitio.textoInicio) {
@@ -2329,7 +2338,7 @@
         }
 
         // ============================================================
-        // 17. CONVERTIR BASE64
+        // 18. CONVERTIR BASE64
         // ============================================================
         function convertirBase64Multiple(input, targetId) {
             const files = input.files;
@@ -2375,7 +2384,7 @@
         }
 
         // ============================================================
-        // 18. CONFIGURACIONES FIREBASE
+        // 19. CONFIGURACIONES FIREBASE
         // ============================================================
         db.ref('configuracion').on('value', snap => {
             const data = snap.val();
@@ -2468,7 +2477,7 @@
         });
 
         // ============================================================
-        // 19. SECCIONES Y PRODUCTOS
+        // 20. SECCIONES Y PRODUCTOS
         // ============================================================
         db.ref('secciones').on('value', snap => {
             seccionesData = [];
@@ -2796,10 +2805,10 @@
         }
 
         // ============================================================
-        // 20. ENVIAR PEDIDO - CORREGIDO CON TIMESTAMP
+        // 21. ENVIAR PEDIDO - CORREGIDO CON TIMESTAMP
         // ============================================================
         async function enviarPedido(d) {
-            const ahora = Date.now(); // 🔥 TIMESTAMP NUMÉRICO
+            const ahora = Date.now();
             
             const pedido = {
                 items: carrito.map(i => ({ nombre: i.nombre, cantidad: i.cantidad, precioUSD: i.precio })),
@@ -2811,7 +2820,7 @@
                 nombre: d.nombre,
                 obs: d.obs,
                 fecha: new Date().toLocaleString(),
-                timestamp: ahora, // 🔥 CLAVE PARA COMPARAR FECHAS
+                timestamp: ahora,
                 status: d.status,
                 tasa: tasaCambio
             };
@@ -2849,7 +2858,6 @@
             carrito = [];
             document.getElementById('cart-count').innerText = "0";
 
-            // 🔥 FORZAR ACTUALIZACIÓN DE VENTAS 🔥
             setTimeout(() => {
                 forzarActualizacionVentas();
             }, 500);
@@ -2892,21 +2900,27 @@
             }
         }
         
-        function borrarPedidos() { if(confirm("¿Vaciar todos los pedidos?")) db.ref('pedidos').remove(); }
+        function borrarPedidos() { 
+            if(confirm("⚠️ ¿Vaciar TODOS los pedidos? Esta acción eliminará el historial completo.")) {
+                db.ref('pedidos').remove();
+                Swal.fire({
+                    title: "🗑️ Historial eliminado",
+                    text: "Todos los pedidos han sido eliminados. El registro de ventas del día se ha reiniciado.",
+                    icon: "warning",
+                    background: '#0F091A',
+                    color: '#fff',
+                    confirmButtonColor: '#E91E63'
+                });
+            }
+        }
+        
         function descargarPDF() {
             const element = document.getElementById('lista-pedidos');
             html2pdf().set({ margin: 1, filename: 'pedidos_rs_art.pdf', jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' } }).from(element).save();
         }
 
-        function borrarPedidoIndividual(k) { 
-            if(confirm("¿Marcar como completado?")) {
-                db.ref('pedidos/' + k).remove();
-                setTimeout(calcularVentasDia, 500);
-            }
-        }
-
         // ============================================================
-        // 21. ADMINISTRADOR
+        // 22. ADMINISTRADOR
         // ============================================================
         function modoAdmin() {
             const clave = prompt("🔐 CLAVE DE ADMINISTRADOR:");
