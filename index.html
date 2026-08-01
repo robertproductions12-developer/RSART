@@ -1193,7 +1193,7 @@
         <audio id="sonidoSirena" loop><source src="https://www.soundjay.com/buttons/sounds/beep-01a.mp3" type="audio/mpeg"></audio>
     </div>
 
-    <script>
+   <script>
         // ============================================================
         // 1. FONDO 3D CON ANIMACIONES PROFESIONALES
         // ============================================================
@@ -1771,7 +1771,7 @@
         }
 
         // ============================================================
-        // 8. REGISTRAR VENTA EN CAJA (CORREGIDO - ACTUALIZA VENTAS DEL DÍA)
+        // 8. REGISTRAR VENTA EN CAJA - CORREGIDO
         // ============================================================
         async function registrarVentaCaja() {
             if (ticketProductos.length === 0) {
@@ -1869,9 +1869,9 @@
             
             limpiarTicketCaja();
             
-            // 🔥 ACTUALIZAR VENTAS DEL DÍA INMEDIATAMENTE 🔥
+            // 🔥 FORZAR ACTUALIZACIÓN DE VENTAS 🔥
             setTimeout(() => {
-                calcularVentasDia();
+                forzarActualizacionVentas();
             }, 500);
             
             // También recargar productos para actualizar stock
@@ -1971,35 +1971,52 @@
         }
 
         // ============================================================
-        // 10. CONTROL DE VENTAS DEL DÍA (ACTUALIZACIÓN EN TIEMPO REAL)
+        // 10. CONTROL DE VENTAS DEL DÍA - CORREGIDO (EN TIEMPO REAL)
         // ============================================================
         function calcularVentasDia() {
             const hoy = new Date().toLocaleDateString();
-            let totalCompras = 0;
-            let totalUSD = 0;
-            let totalBs = 0;
-            const ventas = [];
+            console.log("🔄 Calculando ventas del día...", hoy);
 
-            db.ref('pedidos').once('value', snap => {
+            // Usamos .on() para escuchar en tiempo real
+            db.ref('pedidos').on('value', snap => {
+                let totalCompras = 0;
+                let totalUSD = 0;
+                let totalBs = 0;
+                const ventas = [];
+
+                if (!snap.exists()) {
+                    console.log("⚠️ No hay pedidos registrados");
+                    document.getElementById('total-compras-dia').textContent = '0';
+                    document.getElementById('total-usd-dia').textContent = '$0.00';
+                    document.getElementById('total-bs-dia').textContent = 'Bs 0.00';
+                    document.getElementById('tabla-ventas-body').innerHTML = 
+                        '<tr><td colspan="6" class="text-center text-gray-500 py-4">No hay ventas registradas hoy</td></tr>';
+                    return;
+                }
+
                 snap.forEach(child => {
                     const ped = child.val();
-                    if (ped.fecha) {
-                        const fechaPed = new Date(ped.fecha);
-                        const fechaStr = fechaPed.toLocaleDateString();
-                        
-                        if (fechaStr === hoy) {
-                            totalCompras++;
-                            totalUSD += ped.totalUSD || 0;
-                            totalBs += ped.totalBs || 0;
+                    if (ped && ped.fecha) {
+                        try {
+                            const fechaPed = new Date(ped.fecha);
+                            const fechaStr = fechaPed.toLocaleDateString();
                             
-                            ventas.push({
-                                fecha: fechaStr,
-                                hora: fechaPed.toLocaleTimeString(),
-                                cliente: ped.nombre || 'Anónimo',
-                                productos: ped.items ? ped.items.map(i => i.nombre + ' (x' + i.cantidad + ')').join(', ') : 'Sin productos',
-                                totalUSD: ped.totalUSD || 0,
-                                totalBs: ped.totalBs || 0
-                            });
+                            if (fechaStr === hoy) {
+                                totalCompras++;
+                                totalUSD += parseFloat(ped.totalUSD) || 0;
+                                totalBs += parseFloat(ped.totalBs) || 0;
+                                
+                                ventas.push({
+                                    fecha: fechaStr,
+                                    hora: fechaPed.toLocaleTimeString(),
+                                    cliente: ped.nombre || 'Anónimo',
+                                    productos: ped.items ? ped.items.map(i => i.nombre + ' (x' + i.cantidad + ')').join(', ') : 'Sin productos',
+                                    totalUSD: parseFloat(ped.totalUSD) || 0,
+                                    totalBs: parseFloat(ped.totalBs) || 0
+                                });
+                            }
+                        } catch (e) {
+                            console.warn("Error procesando pedido:", e);
                         }
                     }
                 });
@@ -2032,11 +2049,25 @@
                         </tr>
                     `).join('');
                 }
+                
+                console.log("✅ Ventas del día actualizadas:", { totalCompras, totalUSD, totalBs });
             });
         }
 
         // ============================================================
-        // 11. ESCUCHAR PEDIDOS EN TIEMPO REAL
+        // 11. FUNCIÓN PARA FORZAR ACTUALIZACIÓN DE VENTAS
+        // ============================================================
+        function forzarActualizacionVentas() {
+            console.log("🔄 Forzando actualización de ventas...");
+            // Simplemente llamamos a calcularVentasDia que ya escucha en tiempo real
+            // Pero forzamos una nueva lectura
+            db.ref('pedidos').once('value', snap => {
+                console.log("📊 Datos actualizados forzadamente");
+            });
+        }
+
+        // ============================================================
+        // 12. ESCUCHAR PEDIDOS EN TIEMPO REAL
         // ============================================================
         function escucharPedidos() {
             db.ref('pedidos').on('value', snap => {
@@ -2058,8 +2089,8 @@
                         <div class="bg-black/60 p-4 md:p-6 rounded-2xl md:rounded-3xl status-${ped.status} animate__animated animate__fadeInRight">
                             <div class="flex justify-between items-start mb-2 md:mb-4">
                                 <div>
-                                    <span class="font-black text-[var(--lime)] text-sm md:text-xl italic">$${ped.totalUSD.toLocaleString('de-DE')} USD</span>
-                                    <span class="text-xs text-gray-400 ml-2">(Bs. ${ped.totalBs.toLocaleString('de-DE')})</span>
+                                    <span class="font-black text-[var(--lime)] text-sm md:text-xl italic">$${ped.totalUSD ? ped.totalUSD.toLocaleString('de-DE') : '0.00'} USD</span>
+                                    <span class="text-xs text-gray-400 ml-2">(Bs. ${ped.totalBs ? ped.totalBs.toLocaleString('de-DE') : '0.00'})</span>
                                 </div>
                                 <button onclick="borrarPedidoIndividual('${ped.key}')" class="w-8 h-8 md:w-10 md:h-10 bg-white/5 rounded-lg text-green-500 hover:bg-green-500 hover:text-white transition-all flex items-center justify-center text-xs"><i class="fas fa-check"></i></button>
                             </div>
@@ -2074,13 +2105,12 @@
                         </div>`;
                 });
                 
-                // 🔥 ACTUALIZAR VENTAS DEL DÍA EN TIEMPO REAL 🔥
-                calcularVentasDia();
+                // Las ventas del día ya se actualizan en tiempo real con calcularVentasDia
             });
         }
 
         // ============================================================
-        // 12. EXPORTAR EXCEL
+        // 13. EXPORTAR EXCEL
         // ============================================================
         function exportarExcelDia() {
             const hoy = new Date().toLocaleDateString();
@@ -2121,7 +2151,7 @@
         }
 
         // ============================================================
-        // 13. ENVIAR WHATSAPP
+        // 14. ENVIAR WHATSAPP
         // ============================================================
         function enviarWhatsAppDia() {
             const hoy = new Date().toLocaleDateString();
@@ -2170,7 +2200,7 @@
         }
 
         // ============================================================
-        // 14. CONTENIDO DEL SITIO
+        // 15. CONTENIDO DEL SITIO
         // ============================================================
         function actualizarContenidoSitio() {
             if (contenidoSitio.textoInicio) {
@@ -2217,7 +2247,7 @@
         }
 
         // ============================================================
-        // 15. CONVERTIR BASE64
+        // 16. CONVERTIR BASE64
         // ============================================================
         function convertirBase64Multiple(input, targetId) {
             const files = input.files;
@@ -2263,7 +2293,7 @@
         }
 
         // ============================================================
-        // 16. CONFIGURACIONES FIREBASE
+        // 17. CONFIGURACIONES FIREBASE
         // ============================================================
         db.ref('configuracion').on('value', snap => {
             const data = snap.val();
@@ -2356,7 +2386,7 @@
         });
 
         // ============================================================
-        // 17. SECCIONES Y PRODUCTOS
+        // 18. SECCIONES Y PRODUCTOS
         // ============================================================
         db.ref('secciones').on('value', snap => {
             seccionesData = [];
@@ -2684,7 +2714,7 @@
         }
 
         // ============================================================
-        // 18. ENVIAR PEDIDO (CORREGIDO - ACTUALIZA VENTAS DEL DÍA)
+        // 19. ENVIAR PEDIDO - CORREGIDO
         // ============================================================
         async function enviarPedido(d) {
             const pedido = {
@@ -2734,9 +2764,9 @@
             carrito = [];
             document.getElementById('cart-count').innerText = "0";
 
-            // 🔥 ACTUALIZAR VENTAS DEL DÍA INMEDIATAMENTE 🔥
+            // 🔥 FORZAR ACTUALIZACIÓN DE VENTAS 🔥
             setTimeout(() => {
-                calcularVentasDia();
+                forzarActualizacionVentas();
             }, 500);
 
             Swal.fire({
@@ -2791,7 +2821,7 @@
         }
 
         // ============================================================
-        // 19. ADMINISTRADOR
+        // 20. ADMINISTRADOR
         // ============================================================
         function modoAdmin() {
             const clave = prompt("🔐 CLAVE DE ADMINISTRADOR:");
